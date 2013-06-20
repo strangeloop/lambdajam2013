@@ -1,0 +1,15 @@
+* TODO Handout (PDF)
+
+  I'm thinking about making the handout the code + Bayes' Theorem.
+
+* TODO Large text corpus
+
+  Could easily be big.txt from Norvig.
+
+* TODO Two evaluation sets
+
+  I would love them to be bigger than Norvig's
+
+* TODO Generate PDF of slides
+
+
