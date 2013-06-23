@@ -6,7 +6,7 @@
 
   Could easily be big.txt from Norvig.
 
-* TODO Two evaluation sets
+* DONE Two evaluation sets
 
   I would love them to be bigger than Norvig's
 
