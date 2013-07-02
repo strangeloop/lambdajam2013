@@ -3,35 +3,45 @@
 open ServiceStack.Common.Web
 open ServiceStack.Service
 open ServiceStack.ServiceHost
+open ServiceStack.ServiceInterface
 open System
 open System.Net
 open System.IO
 open System.Drawing
 open System.Drawing.Imaging
 
-type ImageResult(image:Image,?imageFormat) =
-  let mutable image = image
-  let imageFormat   = defaultArg imageFormat ImageFormat.Png
-  interface IHasOptions with
-    member __.Options = 
-      let contentType = sprintf "image/%s" ((string imageFormat).ToLower())
-      dict [(HttpHeaders.ContentType,contentType)]
-  interface IStreamWriter with
-    member __.WriteTo(responseStream) =
-      image.Save(responseStream,imageFormat)
-  interface IDisposable with
-    member __.Dispose() = 
-      (image :> IDisposable).Dispose()
-      image <- null
 
-type [<CLIMutable>] Render  = { Maze      : int[][] 
-                                CellSize  : int }
+type [<CLIMutable>] Render = { Maze      : int[][] 
+                               CellSize  : int }
 
 type RenderService() =
-  member __.GET({Maze=maze;CellSize=cellSize;}) = 
-    new ImageResult(maze |> Image.render cellSize)
-  interface IService (* marker *)
+  inherit Service()
 
+  let getRawImage { Maze = maze; CellSize = cellSize; } =
+    use image   = maze |> Image.render cellSize
+    use buffer  = new MemoryStream()
+    image.Save(buffer,ImageFormat.Png)
+    buffer.ToArray();
+
+  let encode = Convert.ToBase64String
+
+  let (|Text|Image|Other|) = function 
+    | "text/plain"  as mime -> Text  mime 
+    | "image/png"   as mime -> Image mime
+    | otherwise             -> Other otherwise
+
+  member self.POST(renderInfo) =
+    let image   = getRawImage renderInfo
+    let accept  = self.Request.AcceptTypes
+                  |> Array.tryPick (function Text  _ as mime -> Some(mime)
+                                           | Image _ as mime -> Some(mime)
+                                           | _               -> None)
+    match accept with
+    | Some(Text (mime)) -> HttpResult(encode image,mime)
+    | Some(Image(mime)) -> HttpResult(image       ,mime)
+    // unsupported media type
+    | _ -> HttpResult(HttpStatusCode.UnsupportedMediaType
+                     ,string HttpStatusCode.UnsupportedMediaType)
 
 type [<CLIMutable>] GetFile = { Name : string }
 

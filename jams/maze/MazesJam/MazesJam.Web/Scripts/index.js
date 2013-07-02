@@ -51,7 +51,7 @@ function loadMazeDef(maze){
   $("#mazeTextual").val(JSON.stringify(maze));
 }
 
-function renderMaze(maze){
+function renderMaze(maze,cellSize){
   // reset table to be empty
   $("#mazeVisual").empty("tr");
   // get basic dimensions from definition
@@ -59,8 +59,8 @@ function renderMaze(maze){
   var width   = d3.max(maze,function(a){return a.length;});
   // prepare table
   var table   = d3.select("#mazeVisual")
-                  .attr("width" ,30 * width )
-                  .attr("height",30 * height);
+                  .attr("width" ,cellSize * width )
+                  .attr("height",cellSize * height);
   // bind rows to table
   var rows    = table.selectAll("tr")
                      .data(maze)
@@ -70,8 +70,12 @@ function renderMaze(maze){
   var cells   = rows.selectAll("td")
                     .data(function(d){return d;})
                     .enter()
-                    .append("td")
-                    .text(function(d){ return String(d); });
+                    .append("td");
+  // (optionally) display cell value
+  if((cellSize > 18) || (cellSize > $("label[for=cellSize]").height())){ 
+    //TODO: replace `18` with a more practical (calculated) metric
+    cells.text(function(d){ return String(d); }); 
+  }
   // carved passages based on bitmask values
   cells.classed("carveN",function(d){return (d & dir.N);}) 
        .classed("carveS",function(d){return (d & dir.S);}) 
@@ -79,12 +83,23 @@ function renderMaze(maze){
        .classed("carveW",function(d){return (d & dir.W);});
 }
 
-function fetchMazeImage(mazeText){
+function fetchMazeImage(mazeText,cellSize){
   var imgTag = $("#mazeImage");
   //NOTE: base URL of rendering service is stored in `data-url` attribute
-  var imgUrl = imgTag.attr("data-url") + "?cellSize=30&maze=" + mazeText;
-  imgTag.attr("src",imgUrl);
-  $("#mazeImageFig").show();
+  var render = $.ajax({type     : 'POST'
+                      ,url      : imgTag.attr('data-url')
+                      ,data     : {maze     : mazeText
+                                  ,cellSize : cellSize}
+                      ,accepts  : {text: 'text/plain'}
+                      //NOTE: by telling the service we want text, we get
+                      //      a Base64-encoded blob, which is just about 
+                      //      the only way to set an in-memory image     
+                      ,dataType : 'text'});
+  render.done(function(imageData) {
+    var imgSrc = "data:image/png;base64," + imageData;
+    imgTag.attr("src",imgSrc);
+    $("#mazeImageFig").show();
+  });
 }
 
 function shouldCallServer(){
@@ -95,9 +110,14 @@ function updateDisplay(){
   try { 
     var mazeText = $("#mazeTextual").val();
     var mazeJSON = $.parseJSON(mazeText);
-    renderMaze($.makeArray(mazeJSON));
+    var cellSize = parseInt($("#cellSize").val()); //TODO: more robust
+    if(!cellSize) {
+      $("#cellSize").val(30);
+      throw new Error("Cell Size MUST be an integral number");
+    }
+    renderMaze($.makeArray(mazeJSON),cellSize);
     $("#mazeTableFig").show();
-    if(shouldCallServer()) fetchMazeImage(mazeText);
+    if(shouldCallServer()) fetchMazeImage(mazeText,cellSize);
   } catch(err) { alert(err); }
 }
 

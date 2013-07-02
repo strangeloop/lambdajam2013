@@ -10,7 +10,7 @@ type AppHost() =
   inherit AppHostHttpListenerBase("MazesJam",typeof<Render>.Assembly)
   override self.Configure(container) =
     self.Routes
-        .Add<Render>("/mazes/render.png",ApplyTo.Get) 
+        .Add<Render>("/mazes/render",ApplyTo.Post) 
         .Add<GetFile>("/{name}",ApplyTo.Get) 
         |> ignore
 

@@ -15,9 +15,13 @@
         <input type="button" id="loadDefaultCarved" value="Load Default (Carved)"   />
         <input type="button" id="builtToCarved"     value="Convert Built to Carved" />
         <input type="submit" id="renderMaze"        value="Render Maze"             />
-        <label>
+        <label for="callServer">
           <input type="checkbox" id="callServer" value="callServer" />
-          Get image from server
+          Get rendered image (PNG) from server
+        </label>
+        <br />
+        <label for="cellSize">Cell Size
+          <input type="text" id="cellSize" value="30" />
         </label>
       </fieldset>
     </form>
@@ -27,7 +31,7 @@
     </figure>
     <figure id="mazeImageFig">
       <figcaption>Maze (as a PNG image)</figcaption>
-      <img id="mazeImage" src="mazes/render.png" data-url="mazes/render.png" />
+      <img id="mazeImage" src="about:blank" data-url="mazes/render" />
     </figure>
     <script src="Scripts/index.js"></script>
   </body>
