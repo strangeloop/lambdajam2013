@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Lambda Jam 2013: Maze Jam</title>
+    <link rel="stylesheet" type="text/css" href="Styles/index.css" />
+    <script src="Scripts/jquery-2.0.2.min.js"></script>
+    <script src="Scripts/d3.v3.min.js"></script>
+  </head>
+  <body>
+    <form id="mazeRender">
+      <fieldset>
+        <legend>Maze Definition</legend>
+        <textarea id="mazeTextual"></textarea>
+        <input type="button" id="loadDefaultBuilt"  value="Load Default (Built)"    />
+        <input type="button" id="loadDefaultCarved" value="Load Default (Carved)"   />
+        <input type="button" id="builtToCarved"     value="Convert Built to Carved" />
+        <input type="submit" id="renderMaze"        value="Render Maze"             />
+        <label>
+          <input type="checkbox" id="callServer" value="callServer" />
+          Get image from server
+        </label>
+      </fieldset>
+    </form>
+    <figure id="mazeTableFig">
+      <figcaption>Maze (as an HTML Table)</figcaption>
+      <table id="mazeVisual"></table>
+    </figure>
+    <figure id="mazeImageFig">
+      <figcaption>Maze (as a PNG image)</figcaption>
+      <img id="mazeImage" src="mazes/render.png" data-url="mazes/render.png" />
+    </figure>
+    <script src="Scripts/index.js"></script>
+  </body>
+</html>

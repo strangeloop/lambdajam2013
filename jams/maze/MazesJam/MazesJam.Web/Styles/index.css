@@ -1,0 +1,57 @@
+﻿fieldset {
+  float: left;
+  width: 266px;
+  margin: 10px 20px auto 10px;
+  padding: 20px;
+  border: 2px solid #000;
+}
+
+textarea {
+  width: 264px;
+  height: 200px;
+  font-size: small;
+}
+
+input {
+  width: 272px;
+  padding: 6px 0;
+}
+
+input[type=checkbox] {
+  width: auto;
+  margin: 16px auto 0 auto;
+}
+
+figure {
+  float:left;
+  width: 300px;
+  margin: 20px 20px auto 10px;
+}
+
+figcaption {
+  color: #777;
+  font-family: 'Courier New', Courier, 'Nimbus Mono L', monospace;
+  font-size: small;
+  text-align: left;
+  vertical-align: middle;
+  margin-bottom: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  border: 2px solid #000;
+}
+
+td {
+  border: 1px solid #000;
+  color: #777;
+  font-family: 'Courier New', Courier, 'Nimbus Mono L', monospace;
+  font-size: small;
+  text-align: center;
+  vertical-align: middle;
+}
+
+td.carveN { border-top-width:    0; }
+td.carveE { border-right-width:  0; }
+td.carveS { border-bottom-width: 0; }
+td.carveW { border-left-width:   0; }
