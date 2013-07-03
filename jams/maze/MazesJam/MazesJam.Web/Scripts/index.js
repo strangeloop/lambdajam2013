@@ -84,20 +84,25 @@ function renderMaze(maze,cellSize){
 }
 
 function fetchMazeImage(mazeText,cellSize){
-  var imgTag = $("#mazeImage");
-  //NOTE: base URL of rendering service is stored in `data-url` attribute
-  var render = $.ajax({type     : 'POST'
-                      ,url      : imgTag.attr('data-url')
-                      ,data     : {maze     : mazeText
-                                  ,cellSize : cellSize}
-                      ,accepts  : {text: 'text/plain'}
-                      //NOTE: by telling the service we want text, we get
-                      //      a Base64-encoded blob, which is just about 
-                      //      the only way to set an in-memory image     
-                      ,dataType : 'text'});
-  render.done(function(imageData) {
+  var render = $.post($("#mazeRender").attr('action') // service URL
+                     ,{ maze : mazeText, cellSize : cellSize }
+                     ,null //NOTE: success callback defined later
+                     //NOTE: by telling the service we want 'text', we get
+                     //      a Base64-encoded blob, which is just about 
+                     //      the only way to set an in-memory image     
+                     ,'text')
+  // failure
+  render.fail(function(_,status){ 
+    console.log("fetchMazeImage reported: "+ status);
+    $("#mazeImageFig").hide();
+    alert("Unable to get image from server.");
+  });
+  // success
+  render.done(function(imageData){
+    console.log("fetchMazeImage reported: success");
+    // use data URI to load image as Base64-encoded blob
     var imgSrc = "data:image/png;base64," + imageData;
-    imgTag.attr("src",imgSrc);
+    $("#mazeImage").attr("src",imgSrc);
     $("#mazeImageFig").show();
   });
 }

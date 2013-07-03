@@ -7,7 +7,7 @@
     <script src="Scripts/d3.v3.min.js"></script>
   </head>
   <body>
-    <form id="mazeRender">
+    <form id="mazeRender" method="post" action="mazes/render">
       <fieldset>
         <legend>Maze Definition</legend>
         <textarea id="mazeTextual"></textarea>
@@ -31,7 +31,7 @@
     </figure>
     <figure id="mazeImageFig">
       <figcaption>Maze (as a PNG image)</figcaption>
-      <img id="mazeImage" src="about:blank" data-url="mazes/render" />
+      <img id="mazeImage" src="about:blank" />
     </figure>
     <script src="Scripts/index.js"></script>
   </body>
