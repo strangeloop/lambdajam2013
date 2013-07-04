@@ -1,4 +1,7 @@
-﻿/* TODO: this entire style sheet behaves badly on IE... fix it. */
+﻿body {
+  background-color: #fff;
+  font-family: 'Courier New', Courier, 'Nimbus Mono L', monospace;
+}
 
 fieldset {
   float: left;
@@ -6,6 +9,11 @@ fieldset {
   margin: 10px 20px auto 10px;
   padding: 20px;
   border: 2px solid #000;
+}
+
+div#visuals {
+  float:left;
+  width: 300px;
 }
 
 textarea {
@@ -21,6 +29,7 @@ label {
 input {
   width: 272px;
   padding: 6px 0;
+  font-family: 'Courier New', Courier, 'Nimbus Mono L', monospace;
 }
 
 input[type=checkbox] {
@@ -29,21 +38,23 @@ input[type=checkbox] {
 }
 
 input[type=text] {
-  width: 190px;
+  width: 100px;
   text-align: right;
   padding: 2px 4px;
   margin: 16px 0 0 4px;
 }
 
+input[type=submit] {
+  margin: 16px auto auto auto;
+}
+
 figure {
-  float:left;
   width: 300px;
   margin: 20px 20px auto 10px;
 }
 
 figcaption {
   color: #777;
-  font-family: 'Courier New', Courier, 'Nimbus Mono L', monospace;
   font-size: small;
   text-align: left;
   vertical-align: middle;
@@ -58,7 +69,6 @@ table {
 td {
   border: 1px solid #000;
   color: #777;
-  font-family: 'Courier New', Courier, 'Nimbus Mono L', monospace;
   font-size: small;
   text-align: center;
   vertical-align: middle;

@@ -51,7 +51,7 @@ function loadMazeDef(maze){
   $("#mazeTextual").val(JSON.stringify(maze));
 }
 
-function renderMaze(maze,cellSize){
+function renderMaze(maze,cellSize,showValues){
   // reset table to be empty
   $("#mazeVisual").empty("tr");
   // get basic dimensions from definition
@@ -72,10 +72,7 @@ function renderMaze(maze,cellSize){
                     .enter()
                     .append("td");
   // (optionally) display cell value
-  if((cellSize > 18) || (cellSize > $("label[for=cellSize]").height())){ 
-    //TODO: replace `18` with a more practical (calculated) metric
-    cells.text(function(d){ return String(d); }); 
-  }
+  if(showValues){ cells.text(function(d){ return String(d); }); }
   // carved passages based on bitmask values
   cells.classed("carveN",function(d){return (d & dir.N);}) 
        .classed("carveS",function(d){return (d & dir.S);}) 
@@ -111,6 +108,10 @@ function shouldCallServer(){
   return $("#callServer:checked").val() !== undefined;
 }
 
+function showCellValues(){
+  return $("#showValues:checked").val() !== undefined;
+}
+
 function updateDisplay(){
   try { 
     var mazeText = $("#mazeTextual").val();
@@ -120,7 +121,7 @@ function updateDisplay(){
       $("#cellSize").val(30);
       throw new Error("Cell Size MUST be an integral number");
     }
-    renderMaze($.makeArray(mazeJSON),cellSize);
+    renderMaze($.makeArray(mazeJSON),cellSize,showCellValues());
     $("#mazeTableFig").show();
     if(shouldCallServer()) fetchMazeImage(mazeText,cellSize);
   } catch(err) { alert(err); }

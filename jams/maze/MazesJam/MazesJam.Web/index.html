@@ -7,32 +7,39 @@
     <script src="Scripts/d3.v3.min.js"></script>
   </head>
   <body>
-    <form id="mazeRender" method="post" action="mazes/render">
+    <form id="mazeRender" method="post" action="/mazes/render">
       <fieldset>
         <legend>Maze Definition</legend>
         <textarea id="mazeTextual"></textarea>
         <input type="button" id="loadDefaultBuilt"  value="Load Default (Built)"    />
         <input type="button" id="loadDefaultCarved" value="Load Default (Carved)"   />
         <input type="button" id="builtToCarved"     value="Convert Built to Carved" />
-        <input type="submit" id="renderMaze"        value="Render Maze"             />
-        <label for="callServer">
-          <input type="checkbox" id="callServer" value="callServer" />
-          Get rendered image (PNG) from server
-        </label>
-        <br />
         <label for="cellSize">Cell Size
           <input type="text" id="cellSize" value="30" />
         </label>
+        <br />
+        <label for="showValues">
+          <input type="checkbox" id="showValues" value="showValues" />
+          Display cell values
+        </label>
+        <br />
+        <label for="callServer">
+          <input type="checkbox" id="callServer" value="callServer" />
+          Get image from server
+        </label>
+        <input type="submit" id="renderMaze" value="Render Maze" />
       </fieldset>
     </form>
-    <figure id="mazeTableFig">
-      <figcaption>Maze (as an HTML Table)</figcaption>
-      <table id="mazeVisual"></table>
-    </figure>
-    <figure id="mazeImageFig">
-      <figcaption>Maze (as a PNG image)</figcaption>
-      <img id="mazeImage" src="about:blank" />
-    </figure>
+    <div id="visuals">
+      <figure id="mazeTableFig">
+        <figcaption>Maze (as an HTML Table)</figcaption>
+        <table id="mazeVisual"></table>
+      </figure>
+      <figure id="mazeImageFig">
+        <figcaption>Maze (as a PNG image)</figcaption>
+        <img id="mazeImage" src="placeholder.png" />
+      </figure>
+    </div>
     <script src="Scripts/index.js"></script>
   </body>
 </html>
