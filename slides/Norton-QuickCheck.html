@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html class="aspect-4-3">
+  <head>
+    <meta charset="utf-8">
+    <title>*QuickCheck* A Silver Bullet for testing?</title>
+    <meta name="description" content="An introduction to Property Based Testing by using QuickCheck">
+    <meta name="author" content="Joseph Wayne Norton">
+    <meta name="generator" content="AsciiDoc 8.6.8, dzslides backend. Code highlighting courtesy of highlight.js.">
+    <meta name="presdate" content="Jul 9, 2013">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,200,300&amp;family=Cedarville+Cursive">
+    <style>
+/*
+Monokai style - ported by Luigi Maselli - http://grigio.org
+*/
+
+pre code {
+  display: block; padding: 0.5em;
+  background: #272822;
+}
+
+pre .tag,
+pre .tag .title,
+pre .keyword,
+pre .literal,
+pre .change,
+pre .winutils,
+pre .flow,
+pre .lisp .title,
+pre .clojure .built_in,
+pre .nginx .title,
+pre .tex .special {
+  color: #F92672;
+}
+
+pre code {
+  color: #DDD;
+}
+
+pre code .constant {
+	color: #66D9EF;
+}
+
+pre .class .title {
+	color: white;
+}
+
+pre .attribute,
+pre .symbol,
+pre .symbol .string,
+pre .value,
+pre .regexp {
+	color: #BF79DB;
+}
+
+pre .tag .value,
+pre .string,
+pre .subst,
+pre .title,
+pre .haskell .type,
+pre .preprocessor,
+pre .ruby .class .parent,
+pre .built_in,
+pre .sql .aggregate,
+pre .django .template_tag,
+pre .django .variable,
+pre .smalltalk .class,
+pre .javadoc,
+pre .django .filter .argument,
+pre .smalltalk .localvars,
+pre .smalltalk .array,
+pre .attr_selector,
+pre .pseudo,
+pre .addition,
+pre .stream,
+pre .envvar,
+pre .apache .tag,
+pre .apache .cbracket,
+pre .tex .command,
+pre .prompt {
+  color: #A6E22E;
+}
+
+pre .comment,
+pre .java .annotation,
+pre .python .decorator,
+pre .template_comment,
+pre .pi,
+pre .doctype,
+pre .deletion,
+pre .shebang,
+pre .apache .sqbracket,
+pre .tex .formula {
+  color: #75715E;
+}
+
+pre .keyword,
+pre .literal,
+pre .css .id,
+pre .phpdoc,
+pre .title,
+pre .haskell .type,
+pre .vbscript .built_in,
+pre .sql .aggregate,
+pre .rsl .built_in,
+pre .smalltalk .class,
+pre .diff .header,
+pre .chunk,
+pre .winutils,
+pre .bash .variable,
+pre .apache .tag,
+pre .tex .special,
+pre .request,
+pre .status {
+  font-weight: bold;
+}
+
+pre .coffeescript .javascript,
+pre .javascript .xml,
+pre .tex .formula,
+pre .xml .javascript,
+pre .xml .vbscript,
+pre .xml .css,
+pre .xml .cdata {
+  opacity: 0.5;
+}
+    </style>
+    <style>
+/*
+ Theme: Stormy
+ Fonts: Yanone Kaffeesatz, Cedarville Cursive
+
+ <link href="http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,200,300" rel="stylesheet">
+ <link href="http://fonts.googleapis.com/css?family=Cedarville+Cursive" rel="stylesheet">
+
+ Style class:
+ .title = Use on title slide
+ .intro = Use on intro slides, use h1 heading (or h2 heading) for topic name
+ .recap = Use on recap slides, use h1 heading (or h2 heading) for topic name, h2 and h3 in an hgroup for summary
+ .source = Use on source code slide, put source in <pre><code> (requires highlight.js for syntax highlighting)
+ .ending = Use on final slide, use h2 heading for message
+ .statement = Use on a paragraph to make it a statement, vertically centered
+ .middle = Use on any element to vertically center it
+
+ Color Palette:
+
+ Name           Hex
+ =====================
+ Eggshell .... #F1F2EC
+ Red ......... #FF4342
+ Light green . #D5EE5E
+ Green ....... #87A660
+ Light blue .. #43C5F1
+ Blue ........ #3899BF
+ Purple ...... #6C5482
+ Light gray .. #D5D5D5
+ Gray ........ #797979
+ Dark Gray ... #6A6A61
+ Black ....... #000000
+
+ Light Cloud   #DDDCC5
+ Grey          #958976
+ Dark grey     #6A6A61
+ Navy          #1D2326
+ Fuschia       #611427
+*/
+
+html, .view body {
+  background: #333333 url(../../images/gray-noise.png) repeat;
+  counter-reset: slideidx;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+}
+
+body, .view section {
+  background-color: #F1F2EC;
+  font-size: 17px;
+  line-height: 1;
+}
+
+section, .view head > title {
+}
+
+.view section:after {
+  counter-increment: slideidx;
+  content: counter(slideidx, decimal-leading-zero);
+  position: absolute;
+  bottom: -1.5em;
+  right: .5em;
+  color: #FFFFFF;
+  font-size: 3em;
+}
+
+.view head > title {
+  color: #FFFFFF;
+  text-align: center;
+  margin: .5em 0 .25em;
+  line-height: 1;
+  font-size: 3em;
+}
+
+.view section[aria-selected] {
+  border: 5px #FFFFFF solid;
+}
+
+section:not(.title) {
+  padding: 50px;
+}
+
+section.title h1 {
+  font-size: 6em;
+  color: #1D2326;
+  position: relative;
+  top: 40%;
+  -webkit-transform: translate(0, -50%);
+  -moz-transform: translate(0, -50%);
+  -ms-transform: translate(0, -50%);
+  -o-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+  padding: 0 50px; /* quick hack to fix overruns */
+}
+
+section.title footer {
+  font-weight: 200;
+  text-align: center;
+  font-size: 2.5em;
+  padding: 30px 50px;
+}
+
+section[class=topic] h2 {
+  color: #958976;
+  font-size: 2.5em;
+  margin-bottom: .5em;
+  margin-top: -.5em;
+}
+
+section.intro, section.terminal {
+  background-color: #1D2326;
+}
+
+section.intro h1,
+section.intro h2 {
+  color: #DDDCC5;
+  text-transform: lowercase;
+  line-height: .7em;
+  text-align: left;
+  font-size: 4.4em;
+}
+
+section.intro.alt h1,
+section.intro.alt h2 {
+  text-align: right;
+}
+
+section.intro h1 strong,
+section.intro h2 strong {
+  color: #D5EE5E;
+  font-size: 1.51em;
+  line-height: .8em;
+}
+
+section.terminal pre.literal {
+  color: #D5EE5E;
+}
+
+section.secret {
+  background-color: #958976;
+}
+
+section.secret p {
+  color: #DDDCC5;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+section.secret strong {
+  color: #43C5F1;
+  font-size: 2em;
+  display: block;
+  line-height: .8em;
+}
+
+section.recap > h1,
+section.recap > h2 {
+  margin: 0;
+  text-transform: uppercase;
+  color: #87A660;
+  font-size: 2em;
+  border: 15px solid #87A660;
+  border-radius: 20px;
+  position: absolute;
+  right: -25px;
+  top: 5px;
+  -webkit-transform: rotate(30deg);
+  -moz-transform: rotate(30deg);
+  -o-transform: rotate(30deg);
+  transform: rotate(30deg);
+  -webkit-transform-origin: top left;
+  -moz-transform-origin: top left;
+  -o-transform-origin: top left;
+  transform-origin: top left;
+  white-space: nowrap;
+  padding: 10px;
+}
+
+section.recap hgroup h2 {
+  color: #958976;
+  text-transform: uppercase;
+  font-size: 4.4em;
+}
+
+section.recap hgroup h3 {
+  color: #611427;
+  text-transform: uppercase;
+  font-size: 3em;
+}
+
+section.recap hgroup .invert h2 {
+  font-size: 3em;
+}
+
+section.recap hgroup .invert h3 {
+  font-size: 4.4em;
+}
+
+section.question p {
+  text-align: right;
+  font-size: 3em;
+}
+
+section.question p strong {
+  display: block;
+  text-transform: uppercase;
+  font-size: 2em;
+  line-height: .8em;
+}
+
+section.ending {
+  background-color: #43C5F1;
+}
+
+section.ending > h2 {
+  color: #F1F2EC;
+  font-size: 4.4em;
+  text-transform: lowercase;
+}
+
+section.ending > h2.name {
+  text-transform: none;
+  top: 40%;
+}
+
+section.ending footer,
+section.ending p.footer {
+  position: absolute;
+  bottom: 22%;
+  left: 0;
+  background-color: #FFFFFF;
+  width: 100%;
+  padding: 40px 0;
+  font-size: 3em;
+  text-align: center;
+  color: #43C5F1;
+  font-weight: bold;
+  top: 55%;
+  margin: 0;
+}
+
+.aspect-16-10 section.ending footer,
+.aspect-16-10 section.ending p.footer {
+  height: 26%;
+}
+
+h1 {
+  font-size: 4.4em;
+}
+
+h1, h2, h3 {
+  text-align: center;
+}
+
+h3 {
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+section ul {
+  list-style: none;
+  font-size: 3em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #43C5F1;
+  text-align: right;
+  margin-bottom: 1em;
+}
+
+section ul.variants {
+  margin-top: 150px; /* half height (250px) - 100px to account for padding */
+}
+
+section ul.split > li {
+  width: 50%;
+}
+
+section ul.split > li:nth-of-type(2n),
+section ul.scatter > li:nth-of-type(2n) {
+  float: right;
+}
+
+section ul.split > li:nth-of-type(2n - 1),
+section ul.scatter > li:nth-of-type(2n - 1) {
+  float: left;
+}
+
+section ul.scatter > li:nth-of-type(2n) {
+  clear: left;
+  text-align: right;
+}
+
+section ul.scatter > li:nth-of-type(2n - 1) {
+  clear: right;
+}
+
+section .graffiti {
+  font-family: 'Cedarville Cursive', cursive;
+  text-transform: none;
+  font-weight: normal;
+  color: #6A6A61;
+  text-align: left;
+  line-height: 1.5;
+}
+
+section .graffiti strong, section .graffiti em {
+  font-weight: 700;
+  font-size: 1.5em;
+}
+
+section dt {
+  font-size: 3em;
+  color: #611427;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0;
+  line-height: 1em;
+}
+
+section dd {
+  color: #958976;
+  text-transform: uppercase;
+  font-weight: 700;
+  line-height: 1em;
+  margin-bottom: 2em;
+  font-size: 2em;
+}
+
+section dt:nth-of-type(2n),
+section dd:nth-of-type(2n) {
+  text-align: right;
+}
+
+section p {
+  color: #958976;
+  font-weight: 700;
+  font-size: 3.5em;
+}
+
+section p.revision {
+  font-family: 'Cedarville Cursive';
+  font-weight: normal;
+  color: #6A6A61;
+  -webkit-transform: rotate(-15deg);
+  -moz-transform: rotate(-15deg);
+  -o-transform: rotate(-15deg);
+  transform: rotate(-15deg);
+  -webkit-transform-origin: 0% 0%;
+  -moz-transform-origin: 0% 0%;
+  -o-transform-origin: 0% 0%;
+  transform-origin: 0% 0%;
+}
+
+.insert:before {
+  display: inline-block;
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+  content: "^";
+  margin-right: 10px;
+}
+
+section p.expression {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 8em;
+  -webkit-transform: rotate(-15deg);
+  -moz-transform: rotate(-15deg);
+  -o-transform: rotate(-15deg);
+  transform: rotate(-15deg);
+  -webkit-transform-origin: 0% 15%;
+  -moz-transform-origin: 0% 15%;
+  -o-transform-origin: 0% 15%;
+  transform-origin: 0% 15%;
+  text-shadow: 1px 1px 3px rgba(0,0,0,.5);
+}
+
+section p.follow-up {
+  /*color: #D5EE5E;*/
+  color: #958976;
+  font-weight: 700;
+  font-size: 2em;
+  margin-top: -.5em;
+  padding-left: 3px;
+}
+
+section p.point {
+  position: relative;
+  text-transform: uppercase;
+  font-size: 2.8em;
+  text-align: right;
+  font-weight: 700;
+}
+
+section em {
+  color: #611427;
+  font-style: normal;
+}
+
+section strong {
+  color: #611427;
+}
+
+section del {
+  color: #6A6A61;
+}
+
+section p del span {
+  color: #958976;
+  font-weight: 700;
+}
+
+blockquote {
+  padding: 0 0 0 15px;
+  margin: -10px 2em 0 2em;
+  border-left: 5px solid #611427;
+}
+
+blockquote:before {
+  color: #611427;
+  content: '\201C';
+  font-size: 4em;
+  font-weight: 700;
+  float: left;
+  margin-left: -.9em;
+}
+
+section blockquote p {
+  color: #1D2326;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: .5em;
+  font-style: italic;
+  font-size: 3.5em;
+  font-weight: normal;
+}
+
+blockquote p em {
+  font-style: italic;
+}
+
+blockquote p:last-of-type {
+  margin-bottom: 0;
+  padding-bottom: 0.1em;
+}
+
+blockquote cite {
+  font-size: 1.5em;
+  display: block;
+  line-height: 1.8;
+  color: #87A660;
+  font-style: normal;
+  margin-top: .25em;
+}
+
+blockquote cite:before {
+  content: '\2014 \00A0';
+}
+
+figcaption {
+  font-size: 3em;
+  /*color: #611427;*/
+  color: #000000;
+  font-weight: 700;
+  text-align: right;
+  position: absolute;
+  bottom: 20px;
+  right: 35px;
+  width: 100%;
+}
+
+figcaption.invert {
+  color: #FFFFFF;
+  text-shadow: 2px 2px #000000;
+}
+
+section.title footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 40px;
+  background-color: #F3F4F8;
+  border-top: 1px solid #CCC;
+}
+
+section.source {
+  /*background-color: #272822;*/
+  background-color: #000000;
+  padding: 30px !important;
+}
+
+section.source h2 {
+  margin: 0 .5em .5em 0;
+  color: #DDDCC5;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+section.source.lhs h2 {
+  text-align: left;
+}
+
+section.source div.title {
+  color: #958976;
+  font-weight: 700;
+  font-size: 1.5em;
+  margin-bottom: .3em;
+  padding-left: 1px;
+}
+
+section pre code {
+  font-family: "DejaVu Sans Mono", "Droid Sans Mono", Menlo, Monaco, "Courier New", monospace;
+  font-size: 1em;
+  line-height: 1.2;
+  background: rgba(255,255,255,.075);
+  border: 1px solid rgba(255,255,255,.2);
+  margin-bottom: 1em;
+}
+
+.middle,
+.statement,
+section.intro > h1,
+section.intro > h2,
+section.recap > hgroup,
+section.ending > h2,
+section > dl,
+section > ul.graffiti,
+section > p {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+  -moz-transform: translate(0, -50%);
+  -ms-transform: translate(0, -50%);
+  -o-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+}
+
+section p.statement strong {
+  font-size: 3em;
+  line-height: .75em;
+}
+
+img.middle {
+  display: block;
+  margin: 0 auto;
+}
+
+img.stretch-x {
+  width: 100%;
+}
+
+img.stretch-y {
+  height: 100%;
+}
+
+.hide {
+  display: none;
+}
+
+.pull-left {
+  float: left;
+}
+
+.pull-right {
+  float: right;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.auto-width {
+  width: auto !important;
+}
+
+span.detail {
+  font-size: .6em;
+  color: #958976;
+  opacity: 0.3;
+  font-weight: normal;
+}
+
+.mild {
+  color: #87A660;
+}
+
+/* Incremental elements */
+
+/* By default, visible */
+.incremental > * {
+  opacity: .5;
+}
+
+/* The current item */
+.incremental > *[aria-selected] {
+  opacity: 1;
+}
+
+/* The items to-be-selected */
+.incremental > *[aria-selected] ~ * {
+  opacity: 0;
+}
+
+.view .incremental {
+  visibility: visible;
+}
+
+.view .incremental * {
+  opacity: 1 !important;
+}
+
+/* The progressbar, at the bottom of the slides, show the global
+   progress of the presentation. */
+#progress-bar {
+  height: 2px;
+  background: #AAA;
+}
+
+/* TODO: merge the overrides below into the sheet */
+section.title h1 {
+  font-size: 4em;
+}
+
+section.title h1 strong {
+  font-size: 3em;
+  font-style: italic;
+}
+
+section.intro h1 strong,
+section.intro h2 strong {
+  font-size: 3.5em;
+}
+
+section p {
+  font-size: 2em;
+  margin-bottom: 1em;
+}
+
+section p.middle,
+section p.statement {
+  font-size: 3em;
+}
+
+section p.follow-up {
+  margin-top: 0;
+}
+
+section > p {
+  position: static;
+  top: 0;
+  -webkit-transform: none;
+  -moz-transform: none;
+  -ms-transform: none;
+  -o-transform: none;
+  transform: none;
+}
+
+section pre.literal {
+  font-size: .8em;
+  font-weight: bold;
+}
+
+section pre code {
+  white-space: pre-wrap;
+}
+
+section pre:nth-of-type(2):not(.continue) code {
+  font-size: .8em;
+  line-height: 1.4;
+}
+
+section ul {
+  text-transform: none;
+  text-align: left;
+/*  font-size: 1.5em;*/
+  line-height: 1.1;
+}
+
+section ul ul {
+  font-size: .8em;
+  margin-bottom: 0;
+  margin-left: 1em;
+}
+
+section.fit {
+  padding: 50px 0;
+  -moz-transition: none;
+}
+
+section.fit > img {
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  display: block;
+}
+
+.colist {
+  color: #DDDCC5;
+}
+section:not(.topic) > h2 {
+  display: none;
+}
+/* bug in full screen image if include dzslides.css before ours */
+* {
+  margin: 0;
+  padding: 0;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+details {
+  display: none;
+}
+/* default aspect is 4:3 */
+body {
+  width: 800px;
+  height: 600px;
+  margin-left: -400px;
+  margin-top: -300px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  overflow: hidden;
+  display: none;
+}
+.aspect-16-10 body {
+  height: 500px;
+  margin-top: -250px;
+}
+.aspect-16-9 body {
+  height: 450px;
+  margin-top: -225px;
+}
+.view body {
+  position: static;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+  overflow: visible;
+  overflow-x: hidden;
+  /* undo Dz.onresize */
+  transform: none !important;
+  -moz-transform: none !important;
+  -webkit-transform: none !important;
+  -o-transform: none !important;
+  -ms-transform: none !important;
+}
+.view head, .view head > title {
+  display: block;
+}
+section {
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+.view section {
+  pointer-events: auto;
+  position: static;
+  width: 800px;
+  height: 600px;
+  margin: -150px -200px;
+  float: left;
+  transform: scale(.4);
+  -moz-transform: scale(.4);
+  -webkit-transform: scale(.4);
+  -o-transform: scale(.4);
+  -ms-transform: scale(.4);
+}
+.view.aspect-16-10 section {
+  height: 500px;
+  margin-top: -125px;
+  margin-bottom: -125px;
+}
+.view.aspect-16-9 section {
+  height: 450px;
+  margin-top: -112px;
+  margin-bottom: -113px;
+}
+.view section > * {
+  pointer-events: none;
+}
+section[aria-selected] {
+  pointer-events: auto;
+}
+html {
+  overflow: hidden;
+}
+html.view {
+  overflow: visible;
+}
+body.loaded {
+  display: block;
+}
+.incremental {
+  visibility: hidden;
+}
+.incremental[active] {
+  visibility: visible;
+}
+#progress-bar {
+  bottom: 0;
+  position: absolute;
+  -moz-transition: width 400ms linear 0s;
+  -webkit-transition: width 400ms linear 0s;
+  -ms-transition: width 400ms linear 0s;
+  transition: width 400ms linear 0s;
+}
+.view #progress-bar {
+  display: none;
+}
+figure {
+  width: 100%;
+  height: 100%;
+}
+figure > * {
+  position: absolute;
+}
+figure > img, figure > video {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Slide flipping */
+
+/* Previous */
+section {
+  opacity: 0;
+}
+.view section {
+  opacity: 1;
+}
+/* Current */
+section[aria-selected] {
+  opacity: 1;
+}
+/* Next */
+section[aria-selected] ~ section {
+  opacity: 0;
+}
+.view section[aria-selected] ~ section {
+  opacity: 1;
+}
+/* Fade slide transition */
+/* opacity is set by core styles */
+section {
+  -moz-transition: opacity 450ms ease-out 0ms;
+  -webkit-transition: opacity 450ms ease-out 0ms;
+  -ms-transition: opacity 450ms ease-out 0ms;
+  transition: opacity 450ms ease-out 0ms;
+}
+    </style>
+  </head>
+  <body>
+    <section class="title">
+      <h1><strong>QuickCheck</strong> A Silver Bullet for testing?</h1>
+      <footer>Joseph Wayne Norton</footer>
+    </section>
+<section>
+<p class="statement">Software testing&#8217;s most famous quote: <em>"Program testing can be used to
+show the presence of bugs, but never to show their absence!"</em> - Edsger
+W. Dijkstra</p>
+</section>
+<section class="topic">
+<h2>Software Testing</h2>
+<ul>
+<li>
+When can one <em>stop</em> testing?
+</li>
+<li>
+Can one <em>prevent</em> introducing errors in the first place?
+</li>
+<li>
+Can testing be <em>fun</em>?
+</li>
+<li>
+.
+</li>
+<li>
+.. maybe <em>never</em>
+</li>
+<li>
+&#8230; except for the fun part!
+</li>
+</ul>
+</section>
+<section>
+<p class="statement">Property Based Testing is an excellent way of quickly detecting bugs
+that one naturally introduces in one&#8217;s specification, design,
+implementation, and tests.</p>
+</section>
+<section class="topic">
+<h2>Why Test?</h2>
+<p>To <em>add value</em> and <em>minimize risk</em> for &#8230;</p>
+<ul>
+<li>
+Ourselves
+</li>
+<li>
+Our Product
+</li>
+<li>
+Our Company
+</li>
+<li>
+Our Customers
+</li>
+<li>
+Our Customer&#8217;s Customers
+</li>
+<li>
+&#8230;
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>What to Test?</h2>
+<p>Five <strong>mandatory</strong> items for knowing what to test are &#8230;</p>
+<ul>
+<li>
+Specification <strong>&#8658;</strong> <em>Documentation</em>
+</li>
+<li>
+Product
+</li>
+<li>
+Customer
+</li>
+<li>
+Tools
+</li>
+<li>
+Plan <strong>&#8658;</strong> <em>Strategy</em>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>What is QuickCheck?</h2>
+<p>A language and test tool whose purpose is to reduce the following
+items:</p>
+<ul>
+<li>
+reduce testing time
+</li>
+<li>
+reduce time to analyze the cause of a failure
+</li>
+<li>
+reduce testing costs
+</li>
+<li>
+reduce volume of test code
+</li>
+<li>
+make testing fun!
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>QuickCheck: In a NutShell #1</h2>
+<p><em>LANGUAGE</em> for stating properties of programs (or systems).</p>
+<ul>
+<li>
+What <strong>must</strong> be true?
+</li>
+<li>
+<em>If it isn&#8217;t true &#8230;</em>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>If it isn&#8217;t true, it <strong>must</strong> be a <em>bug</em> in one of the following:</h2>
+<ul>
+<li>
+the specification?
+</li>
+<li>
+the program?
+</li>
+<li>
+the test?
+</li>
+<li>
+the environment?
+</li>
+<li>
+one, two, three or all of the above?
+</li>
+</ul>
+<p>Tip: Focus is on the <em>specification</em> !</p>
+</section>
+<section class="topic">
+<h2>QuickCheck: In a NutShell #2</h2>
+<p><em>TOOL</em> for testing properties in randomly generated cases.</p>
+<ul>
+<li>
+Quickly, easily, and cheaply generate tens of thousands of test
+  cases.
+</li>
+<li>
+Random isn&#8217;t really random <strong>&#8658;</strong> <em>controlled and repeatable
+  randomness</em>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>When a <em>counterexample</em> is found:</h2>
+<ul>
+<li>
+QuickCheck automatically <em>shrinks</em> generated test inputs to find the
+  smallest possible counterexample.
+</li>
+</ul>
+<p>Tip: Let QuickCheck do the dirty work so that you can focus more
+energy on the &#8230; <em>specification</em> !</p>
+</section>
+<section class="topic">
+<h2>Example: State Machine Testing Approach</h2>
+<p>The State Machine Testing approach includes 5 key components:</p>
+<ul>
+<li>
+State Model
+<ul>
+<li>
+A model of System&#8217;s <em>state</em>.
+</li>
+</ul>
+</li>
+<li>
+Test Commands
+<ul>
+<li>
+A set of System <em>commands</em> and their respective command
+    generators.
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>State Machine Testing Approach (cont.)</h2>
+<ul>
+<li>
+Next State Functions
+<ul>
+<li>
+Describe <em>state changes</em> of System&#8217;s test model for each System
+    command.
+</li>
+</ul>
+</li>
+<li>
+Postcondition Functions
+<ul>
+<li>
+Describe <strong>properties</strong> that should be true after each command on
+    the System test model and on results returned from the System
+    server.
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>State Machine Testing Approach (cont.)</h2>
+<ul>
+<li>
+Precondition Functions
+<ul>
+<li>
+Describe commands that should be <strong>excluded</strong> from test execution.
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Example: A Key/Value Database  (1 of 5)</h2>
+<p>Let&#8217;s apply this strategy to a Key/Value database.</p>
+<ul>
+<li>
+State Model
+<ul>
+<li>
+List of Key/Value pairs
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Example: A Key/Value Database  (2 of 5)</h2>
+<ul>
+<li>
+Test Commands
+<ul>
+<li>
+<code>new/2</code> - open a new database
+</li>
+<li>
+<code>insert/2</code> - insert a key/value pair
+</li>
+<li>
+<code>insert_new/2</code> - insert a <strong>new</strong> key/value pair
+</li>
+<li>
+<code>delete/1</code> - delete the database
+</li>
+<li>
+<code>delete/2</code> - delete a key from the database
+</li>
+<li>
+<code>lookup/2</code> - lookup a key and return it&#8217;s value
+</li>
+<li>
+<code>first/1</code> - return the first key in the database
+</li>
+<li>
+<code>next/2</code> - return the next key in the database
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Example: A Key/Value Database  (3 of 5)</h2>
+<ul>
+<li>
+Next State Functions
+<ul>
+<li>
+<code>insert_new/2</code> - if key doesn&#8217;t exist in the database, insert
+    key/value pair to the list of key/value pairs
+</li>
+<li>
+<code>insert_new/2</code> - if key does exist in the database, do nothing to
+    the database
+</li>
+<li>
+<code>lookup/2</code> - ?
+</li>
+<li>
+&#8230;
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Example: A Key/Value Database  (4 of 5)</h2>
+<ul>
+<li>
+Postcondition Functions
+<ul>
+<li>
+<code>insert_new/2</code> - if key doesn&#8217;t exist in the database, the command
+    returns <code>ok</code>
+</li>
+<li>
+<code>insert_new/2</code> - if key does exist in the database, the command
+    returns <code>badarg</code>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Example: A Key/Value Database  (4 of 5)</h2>
+<ul>
+<li>
+Postcondition Functions
+<ul>
+<li>
+<code>lookup/2</code> - if key does exist in the database, the command
+    returns <code>ok</code> and the value in the database (<em>and</em> the returned
+    value <strong>must</strong> be same as the value in the <em>model</em>)
+</li>
+<li>
+<code>lookup/2</code> - if key doesn&#8217;t exist in the database, the command
+    returns <code>badarg</code>
+</li>
+<li>
+&#8230;
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Example: A Key/Value Database  (5 of 5)</h2>
+<ul>
+<li>
+Precondition Functions
+<ul>
+<li>
+<code>new/2</code> - do not call <code>new/2</code> if the database is already open
+</li>
+<li>
+&#8230;
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>A Real Example: LevelDB</h2>
+<p>LevelDB is a fast key-value storage C++ library written at Google that
+provides an ordered mapping from string keys to string values.</p>
+<p>See <a href="http://code.google.com/p/leveldb/">http://code.google.com/p/leveldb/</a> for further details.</p>
+<ul>
+<li>
+A QuickCheck State Machine Model was written and tested against
+  Google&#8217;s LevelDB.
+</li>
+<li>
+Within only a few minutes, QuickCheck found a failing counterexample
+  of 17 steps &#8230;.
+</li>
+<li>
+<strong>It must be a bug in the ?</strong>
+</li>
+</ul>
+</section>
+<section class="topic source">
+<h2>A Real Example: LevelDB Issue 44 - Part I (1 of 2)</h2>
+<p>Reappearing <em>ghost</em> key after 17 steps</p>
+<ul>
+<li>
+Q1: What steps will reproduce the problem?
+</li>
+<li>
+A1: The following steps &#8230;
+</li>
+</ul>
+<div class="listing">
+<pre class="no-highlight"><code>1. open new database
+2. put key1 and val1
+3. close database</code></pre>
+</div>
+<div class="listing">
+<pre class="no-highlight"><code>4. open database
+5. delete key2
+6. delete key1
+7. close database</code></pre>
+</div>
+<div class="listing">
+<pre class="no-highlight"><code>8. open database
+9. delete key2
+10. close database</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>A Real Example: LevelDB Issue 44 - Part I (2 of 2)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>11. open database
+12. put key3 and val1
+13. close database</code></pre>
+</div>
+<div class="listing">
+<pre class="no-highlight"><code>14. open database
+15. close database</code></pre>
+</div>
+<div class="listing">
+<pre class="no-highlight"><code>16. open database
+17. seek first</code></pre>
+</div>
+<ul>
+<li>
+Q2: What is the expected output?
+</li>
+<li>
+A2: key3 at step 17
+</li>
+<li>
+Q3: What do you see instead?
+</li>
+<li>
+A3: key1 at step 17
+</li>
+</ul>
+</section>
+<section class="topic source">
+<h2>A Real Example: LevelDB Issue 44 - Part II</h2>
+<p>The above sequence of 17 steps was reported to Google.</p>
+<ul>
+<li>
+After several weeks, one likely bug fix, and only after providing a
+  hand-written C-only failing counterexample to Google, Google
+  provided a second fix.
+</li>
+<li>
+<strong>It must be a bug in the program!</strong>
+</li>
+</ul>
+</section>
+<section class="topic source">
+<h2>A Real Example: LevelDB Issue 44 - Part III</h2>
+<p>Within only a few minutes after testing the fixed version, QuickCheck
+found a new failing counterexample of 33 steps &#8230;</p>
+<ul>
+<li>
+<strong>It must be a bug in the fix?</strong>
+</li>
+</ul>
+</section>
+<section class="topic source">
+<h2>A Real Example: LevelDB Issue 44 - Part IV</h2>
+<p>The sequence of 33 steps was reported to Google.</p>
+<ul>
+<li>
+Within a day or two, Google then provided the third (and final) fix.
+</li>
+<li>
+The second and third fix addressed a bug found in LevelDB&#8217;s
+  background compaction processing.
+</li>
+<li>
+<strong>Indeed, it was a real bug in the program!</strong>
+</li>
+</ul>
+</section>
+<section>
+<p class="statement">See "Issue 44 - leveldb" for further details.</p>
+<p><em>http://code.google.com/p/leveldb/issues/detail?id=44</em></p>
+<p><em>https://github.com/norton/lets/blob/master/test/qc/qc_statemc_lets.erl</em></p>
+</section>
+<section class="topic">
+<h2>A Real Example: LevelDB Issue 44 - Summary</h2>
+<ul>
+<li>
+What human could have <em>imagined</em> a failing <strong>minimal</strong> sequence of 17
+  steps?
+</li>
+<li>
+What human could have <em>imagined</em> a failing <strong>minimal</strong> sequence of 33
+  steps?
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>A Real Example: LevelDB Issue 44 - Summary (cont.)</h2>
+<ul>
+<li>
+<strong>~340</strong> is the number of lines of code used to file the initial bug
+  report.
+</li>
+<li>
+<strong>~160</strong> is the extra number of lines of code used to isolate the bug
+  using LevelDB&#8217;s C-style API.
+</li>
+</ul>
+</section>
+<section class="topic source">
+<h2>A Real Example: LevelDB Issue 44 - Lines Of Code</h2>
+<div class="listing">
+<pre class="no-highlight"><code>$ cloc-1.55.pl test/qc/qc_statem_lets.erl
+      1 text file.
+      1 unique file.
+      0 files ignored.
+
+Language       files          blank        comment           code
+Erlang             1             63             46            339
+
+$ cloc-1.55.pl test/qc/qc_statemc_lets.erl
+      1 text file.
+      1 unique file.
+      0 files ignored.
+
+Language       files          blank        comment           code
+Erlang             1             41             33            163</code></pre>
+</div>
+</section>
+<section class="topic">
+<h2>How to get started?</h2>
+<ul>
+<li>
+Step 0: download and install Erlang/OTP
+</li>
+<li>
+Step 1: download copy of a property-based testing tool
+<ul>
+<li>
+QuickCheck
+</li>
+<li>
+PropEr
+</li>
+</ul>
+</li>
+<li>
+Step 2: read and understand the documentation
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>How to get started? (cont.)</h2>
+<ul>
+<li>
+Step 3: write some property-based tests for your favorite library
+  modules
+<ul>
+<li>
+lists, binary, unicode, calendar, &#8230;
+</li>
+</ul>
+</li>
+<li>
+Step 4: write some stateful property-based tests
+<ul>
+<li>
+spawn/exit/register/unregister/whereis, ets, &#8230;
+</li>
+</ul>
+</li>
+<li>
+Step 5: study and learn from open-source projects that have
+  property-based tests
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>How to get started? (cont.)</h2>
+<ul>
+<li>
+Step 6: choose something of importance to test
+</li>
+<li>
+Step 7: stop writing (e)unit tests
+</li>
+<li>
+Step 8: start writing property-based tests
+<ul>
+<li>
+keep it simple
+</li>
+<li>
+find and fix bugs
+</li>
+<li>
+improve test
+</li>
+<li>
+repeat
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>A Few Remarks</h2>
+<ul>
+<li>
+Generator automation
+<ul>
+<li>
+Erlang specs
+</li>
+<li>
+Yecc and ABNF grammars
+</li>
+<li>
+Universal Binary Format (a.k.a. UBF)
+</li>
+</ul>
+</li>
+<li>
+Mocking techniques
+<ul>
+<li>
+Data and Functions
+</li>
+<li>
+Systems
+</li>
+</ul>
+</li>
+<li>
+Testing non-Erlang systems
+<ul>
+<li>
+C code
+</li>
+<li>
+network APIs
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section class="topic">
+<h2>Concluding Remarks</h2>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The best defense to minimize Product failures and support costs are
+   accurate <em>documentation</em>.
+</p>
+</li>
+<li>
+<p>
+Once the documentation is in place, the best and only defense to
+   minimize Product failures is to <em>test</em> that the implementation
+   behaves according to the specification.
+</p>
+</li>
+<li>
+<p>
+<em>Design</em> for testability.
+</p>
+</li>
+</ol></div>
+</section>
+<section class="topic">
+<h2>Property Based Testing and QuickCheck</h2>
+<p>Property Based Testing and QuickCheck is a best-in-class methodology
+and tool for <em>Test</em> &#8230; ready and waiting for your efforts!</p>
+<ul>
+<li>
+reduce testing time
+</li>
+<li>
+reduce time to analyze the cause of a failure
+</li>
+<li>
+reduce testing costs
+</li>
+<li>
+reduce volume of test code
+</li>
+<li>
+make testing fun!
+</li>
+</ul>
+</section>
+<section>
+<p class="statement">Thank You</p>
+<p><em>@josephwnorton</em></p>
+<p><em>https://github.com/norton</em></p>
+</section>
+<section>
+<p class="statement">Your supervisor&#8217;s most famous quote?: <em>"If you want more effective
+programmers, you will discover that they should not waste their time
+debugging, they should not introduce the bugs to start with."</em> -
+Edsger W. Dijkstra</p>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (State Model)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>-record(obj, {key :: binary(), val :: binary()}).
+
+-type obj() :: #obj{}.
+
+-record(state, {
+          parallel=false :: boolean(),
+          exists=false   :: boolean(),
+          options=[]     :: proplists:proplist(),
+          db=undefined   :: undefined | term(),
+          objs=[]        :: [obj()]
+         }).</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (Test Commands)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>serial_command_gen(#state{db=undefined, exists=false}) -&gt;
+    {call,?IMPL,open,[ulist(gen_db_options())]};
+serial_command_gen(#state{db=undefined, exists=true}) -&gt;
+    oneof([{call,?IMPL,reopen,[ulist(gen_db_options())]}
+           %% @TODO {call,?IMPL,destroy,[ulist(gen_db_options())]}
+           %% @TODO {call,?IMPL,repair[ulist(gen_db_options())]}
+          ]);
+serial_command_gen(#state{db=Db}=S) -&gt;
+    oneof([{call,?IMPL,close,[Db]},
+           {call,?IMPL,put,[Db,gen_obj(S),ulist(gen_db_write_options())]},
+           {call,?IMPL,delete,[Db,gen_key(S),ulist(gen_db_write_options())]},
+           {call,?IMPL,get,[Db,gen_key(S),ulist(gen_db_read_options())]},
+           {call,?IMPL,first,[Db,ulist(gen_db_read_options())]},
+           {call,?IMPL,last,[Db,ulist(gen_db_read_options())]},
+           {call,?IMPL,next,[Db,gen_key(S),ulist(gen_db_read_options())]},
+           {call,?IMPL,prev,[Db,gen_key(S),ulist(gen_db_read_options())]}
+          ]).</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (Next State Functions)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>-spec next_state(#state{}, term(), tuple()) -&gt; #state{}.
+next_state(#state{db=undefined, exists=false}=S, V, {call,_,open,[Opts]}) -&gt;
+    S#state{options=Opts, db=V, exists=true};
+next_state(#state{db=undefined, exists=true}=S, V, {call,_,reopen,[Opts]}) -&gt;
+    S#state{options=Opts, db=V, exists=true};
+next_state(#state{db=undefined, exists=true}=S, V, {call,_,destroy,[Opts]}) -&gt;
+    S#state{options=Opts, db=V, exists=false, objs=[]};
+next_state(#state{db=Db}=S, _V, {call,_,close,[Db]}) when Db /= undefined -&gt;
+    S#state{db=undefined};
+next_state(S, _V, {call,_,put,[_Db,Obj,_Opts]}) -&gt;
+    insert_obj(S, Obj);
+next_state(S, _V, {call,_,delete,[_Db,Key,_Opts]}) -&gt;
+    delete_obj(S, Key);
+next_state(S, _V, {call,_,_,_}) -&gt;
+    S.</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (Postcondition Functions)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>-spec postcondition(#state{}, tuple(), term()) -&gt; boolean().
+postcondition(#state{exists=false}, {call,_,open,[__Opts]}, Res) -&gt;
+    ?IMPL:is_db(Res);
+postcondition(#state{exists=true}, {call,_,reopen,[_Opts]}, Res) -&gt;
+    ?IMPL:is_db(Res);
+postcondition(#state{exists=true}, {call,_,destroy,[_Opts]}, Res) -&gt;
+    Res;
+postcondition(#state{exists=true}, {call,_,repair,[_Opts]}, Res) -&gt;
+    Res;
+postcondition(#state{db=Db}, {call,_,close,[_Db]}, Res) -&gt;
+    Res andalso Db /= undefined;</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (Postcondition Functions cont.)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>postcondition(_S, {call,_,put,[_Db,_,_Opts]}, Res) -&gt;
+    Res;
+postcondition(_S, {call,_,delete,[_Db,_,_Opts]}, Res) -&gt;
+    Res;
+postcondition(S, {call,_,get,[_Db,Key,_Opts]}, Res) -&gt;
+    Res =:= get_val(S, Key);
+postcondition(#state{objs=[]}, {call,_,first,[_Db,_Opts]}, Res) -&gt;
+    Res;
+postcondition(S, {call,_,first,[_Db,_Opts]}, Res) -&gt;
+    #obj{key=K} = hd(sort_objs(S)),
+    Res =:= K;
+postcondition(#state{objs=[]}, {call,_,last,[_Db,_Opts]}, Res) -&gt;
+    Res;
+postcondition(S, {call,_,last,[_Db,_Opts]}, Res) -&gt;
+    #obj{key=K} = hd(lists:reverse(sort_objs(S))),
+    Res =:= K;</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (Postcondition Functions cont.)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>postcondition(S, {call,_,next,[_Db,Key,_Opts]}, Res) -&gt;
+    case lists:dropwhile(fun(#obj{key=X}) -&gt; X =&lt; Key end, sort_objs(S)) of
+        [] -&gt;
+            Res;
+        [#obj{key=K}|_] -&gt;
+            Res =:= K
+    end;
+postcondition(S, {call,_,prev,[_Db,Key,_Opts]}, Res) -&gt;
+    case lists:dropwhile(fun(#obj{key=X}) -&gt; X &gt;= Key end, rsort_objs(S)) of
+        [] -&gt;
+            Res;
+        [#obj{key=K}|_] -&gt;
+            Res =:= K
+    end;
+postcondition(_S, {call,_,_,_}, _Res) -&gt;
+    false.</code></pre>
+</div>
+</section>
+<section class="topic source">
+<h2>qc_statemc_lets.erl (Precondition Functions)</h2>
+<div class="listing">
+<pre class="no-highlight"><code>-spec precondition(#state{}, tuple()) -&gt; boolean().
+precondition(#state{exists=true}, {call,_,open,[__Opts]}) -&gt;
+    false;
+precondition(#state{exists=false}, {call,_,reopen,[__Opts]}) -&gt;
+    false;
+precondition(#state{exists=false}, {call,_,destroy,[__Opts]}) -&gt;
+    false;
+precondition(#state{exists=false}, {call,_,repair,[__Opts]}) -&gt;
+    false;
+precondition(#state{db=Db}, {call,_,open,[__Opts]}) when Db /= undefined-&gt;
+    false;
+precondition(#state{db=Db}, {call,_,reopen,[__Opts]}) when Db /= undefined-&gt;
+    false;
+precondition(#state{db=Db}, {call,_,destroy,[__Opts]}) when Db /= undefined-&gt;
+    false;
+precondition(#state{db=Db}, {call,_,repair,[__Opts]}) when Db /= undefined-&gt;
+    false;
+precondition(_S, {call,_,_,_}) -&gt;
+    true.</code></pre>
+</div>
+</section>
+    <script>
+//<![CDATA[
+//   __  __  __       .  __   ___  __
+//  |  \  / /__` |    | |  \ |__  /__`
+//  |__/ /_ .__/ |___ | |__/ |___ .__/ core :€
+//
+var Dz = {
+  remoteWindows: [],
+  idx: -1,
+  step: 0,
+  html: null,
+  slides: null,
+  progressBar : null,
+  params: {
+    autoplay: "1"
+  }
+};
+
+Dz.init = function() {
+  document.body.className = "loaded";
+  this.slides = Array.prototype.slice.call($$("body > section"));
+  this.progressBar = $("#progress-bar");
+  if (!this.progressBar) {
+    this.progressBar = document.createElement('div');
+    this.progressBar.id = 'progress-bar';
+    document.body.appendChild(this.progressBar);
+  }
+  this.html = document.body.parentNode;
+  this.setupParams();
+  this.onhashchange();
+  this.setupTouchEvents();
+  this.onresize();
+  this.setupView();
+}
+
+Dz.setupParams = function() {
+  var p = window.location.search.substr(1).split('&');
+  p.forEach(function(e, i, a) {
+    var keyVal = e.split('=');
+    Dz.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
+  });
+// Specific params handling
+  if (!+this.params.autoplay)
+    $$.forEach($$("video"), function(v){ v.controls = true });
+}
+
+Dz.onkeydown = function(aEvent) {
+  // skip keystrokes in a content editable region
+  if (aEvent.target.isContentEditable) {
+    return;
+  }
+
+  // Don't intercept keyboard shortcuts
+  if (aEvent.altKey
+    || aEvent.ctrlKey
+    || aEvent.metaKey
+    || aEvent.shiftKey) {
+    return;
+  }
+  if ( aEvent.keyCode == 37 // left arrow
+    || aEvent.keyCode == 38 // up arrow
+    || aEvent.keyCode == 33 // page up
+    || aEvent.keyCode == 8 // backspace
+    || aEvent.keyCode == 75 // k
+  ) {
+    aEvent.preventDefault();
+    this.back();
+  }
+  else if ( aEvent.keyCode == 39 // right arrow
+    || aEvent.keyCode == 40 // down arrow
+    || aEvent.keyCode == 34 // page down
+    || aEvent.keyCode == 32 // space
+    || aEvent.keyCode == 74 // j
+  ) {
+    aEvent.preventDefault();
+    this.forward();
+  }
+  else if (aEvent.keyCode == 35) { // end
+    aEvent.preventDefault();
+    this.goEnd();
+  }
+  else if (aEvent.keyCode == 36) { // home
+    aEvent.preventDefault();
+    this.goStart();
+  }
+  else if (aEvent.keyCode == 80) { // p
+    aEvent.preventDefault();
+    this.toggleContent();
+  }
+  else if (aEvent.keyCode == 70) { // f
+    aEvent.preventDefault();
+    this.goFullscreen();
+  }
+  else if (aEvent.keyCode == 79) { // o
+    aEvent.preventDefault();
+    this.toggleView();
+  }
+}
+
+/* Touch Events */
+
+Dz.setupTouchEvents = function() {
+  var orgX, newX;
+  var tracking = false;
+
+  var db = document.body;
+  db.addEventListener("touchstart", start.bind(this), false);
+  db.addEventListener("touchmove", move.bind(this), false);
+
+  function start(aEvent) {
+    aEvent.preventDefault();
+    tracking = true;
+    orgX = aEvent.changedTouches[0].pageX;
+  }
+
+  function move(aEvent) {
+    if (!tracking) return;
+    newX = aEvent.changedTouches[0].pageX;
+    if (orgX - newX > 100) {
+      tracking = false;
+      this.forward();
+    } else {
+      if (orgX - newX < -100) {
+        tracking = false;
+        this.back();
+      }
+    }
+  }
+}
+
+Dz.setupView = function() {
+  document.body.addEventListener("click", function ( e ) {
+    if (!Dz.html.classList.contains("view")) return;
+    if (!e.target || e.target.nodeName != "SECTION") return;
+
+    Dz.html.classList.remove("view");
+    Dz.setCursor(Dz.slides.indexOf(e.target) + 1);
+  }, false);
+}
+
+/* Adapt the size of the slides to the window */
+
+Dz.onresize = function() {
+  var db = document.body;
+  var sx = db.clientWidth / window.innerWidth;
+  var sy = db.clientHeight / window.innerHeight;
+  var transform = "scale(" + (1/Math.max(sx, sy)) + ")";
+
+  db.style.MozTransform = transform;
+  db.style.WebkitTransform = transform;
+  db.style.OTransform = transform;
+  db.style.msTransform = transform;
+  db.style.transform = transform;
+}
+
+Dz.getDetails = function(aIdx) {
+  var s = $("section:nth-of-type(" + aIdx + ")");
+  var d = s.$("details");
+  return d ? d.innerHTML : "";
+}
+
+Dz.getAspect = function() {
+  var match = document.documentElement.className.match(/\baspect-([0-9]+)-([0-9]+)\b/)
+  if (match)
+    return match[1] + ":" + match[2];
+  return "4:3";
+}
+
+Dz.onmessage = function(aEvent) {
+  var argv = aEvent.data.split(" "), argc = argv.length;
+  argv.forEach(function(e, i, a) { a[i] = decodeURIComponent(e) });
+  var win = aEvent.source;
+  if (argv[0] === "REGISTER" && argc === 1) {
+    this.remoteWindows.push(win);
+    this.postMsg(win, "REGISTERED", document.title, this.slides.length);
+    this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+    return;
+  }
+  if (argv[0] === "BACK" && argc === 1)
+    this.back();
+  if (argv[0] === "FORWARD" && argc === 1)
+    this.forward();
+  if (argv[0] === "START" && argc === 1)
+    this.goStart();
+  if (argv[0] === "END" && argc === 1)
+    this.goEnd();
+  if (argv[0] === "TOGGLE_CONTENT" && argc === 1)
+    this.toggleContent();
+  if (argv[0] === "SET_CURSOR" && argc === 2)
+    window.location.hash = "#" + argv[1];
+  if (argv[0] === "GET_CURSOR" && argc === 1)
+    this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+  if (argv[0] === "GET_NOTES" && argc === 1)
+    this.postMsg(win, "NOTES", this.getDetails(this.idx));
+  if (argv[0] === "GET_ASPECT" && argc === 1)
+    this.postMsg(win, "ASPECT", this.getAspect());
+}
+
+Dz.toggleContent = function() {
+  // If a Video is present in this new slide, play it.
+  // If a Video is present in the previous slide, stop it.
+  var s = $("section[aria-selected]");
+  if (s) {
+    var video = s.$("video");
+    if (video) {
+      if (video.ended || video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    }
+  }
+}
+
+Dz.setCursor = function(aIdx, aStep) {
+  // If the user change the slide number in the URL bar, jump
+  // to this slide.
+  aStep = (aStep != 0 && typeof aStep !== "undefined") ? "." + aStep : ".0";
+  window.location.hash = "#" + aIdx + aStep;
+}
+
+Dz.onhashchange = function() {
+  var cursor = window.location.hash.split("#"),
+      newidx = 1,
+      newstep = 0;
+  if (cursor.length == 2) {
+    newidx = ~~cursor[1].split(".")[0];
+    newstep = ~~cursor[1].split(".")[1];
+    if (newstep > Dz.slides[newidx - 1].$$('.incremental > *').length) {
+      newstep = 0;
+      newidx++;
+    }
+  }
+  this.setProgress(newidx, newstep);
+  if (newidx != this.idx) {
+    this.setSlide(newidx);
+  }
+  if (newstep != this.step) {
+    this.setIncremental(newstep);
+  }
+  for (var i = 0; i < this.remoteWindows.length; i++) {
+    this.postMsg(this.remoteWindows[i], "CURSOR", this.idx + "." + this.step);
+  }
+}
+
+Dz.back = function() {
+  if (this.idx == 1 && this.step == 0) {
+    return;
+  }
+  if (this.step == 0) {
+    this.setCursor(this.idx - 1,
+                   this.slides[this.idx - 2].$$('.incremental > *').length);
+  } else {
+    this.setCursor(this.idx, this.step - 1);
+  }
+}
+
+Dz.forward = function() {
+  if (this.idx >= this.slides.length &&
+      this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+      return;
+  }
+  if (this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+    this.setCursor(this.idx + 1, 0);
+  } else {
+    this.setCursor(this.idx, this.step + 1);
+  }
+}
+
+Dz.goStart = function() {
+  this.setCursor(1, 0);
+}
+
+Dz.goEnd = function() {
+  var lastIdx = this.slides.length;
+  var lastStep = this.slides[lastIdx - 1].$$('.incremental > *').length;
+  this.setCursor(lastIdx, lastStep);
+}
+
+Dz.toggleView = function() {
+  this.html.classList.toggle("view");
+
+  if (this.html.classList.contains("view")) {
+    $("section[aria-selected]").scrollIntoView(true);
+  }
+}
+
+Dz.setSlide = function(aIdx) {
+  this.idx = aIdx;
+  var old = $("section[aria-selected]");
+  var next = $("section:nth-of-type("+ this.idx +")");
+  if (old) {
+    var oldIncremental = old.$('.incremental > *[aria-selected]')
+    if (oldIncremental) {
+      oldIncremental.removeAttribute('aria-selected');
+    }
+    old.removeAttribute("aria-selected");
+    var video = old.$("video");
+    if (video) {
+      video.pause();
+    }
+  }
+  if (next) {
+    next.setAttribute("aria-selected", "true");
+    var video = next.$("video");
+    if (video && !!+this.params.autoplay) {
+      video.play();
+    }
+  } else {
+    // That should not happen
+    this.idx = -1;
+    // console.warn("Slide doesn't exist.");
+  }
+}
+
+Dz.setIncremental = function(aStep) {
+  this.step = aStep;
+  var old = this.slides[this.idx - 1].$('.incremental > *[aria-selected]');
+  if (old) {
+    old.removeAttribute('aria-selected');
+  }
+  var incrementals = $$('.incremental');
+  if (this.step <= 0) {
+    $$.forEach(incrementals, function(aNode) {
+      aNode.removeAttribute('active');
+    });
+    return;
+  }
+  var next = this.slides[this.idx - 1].$$('.incremental > *')[this.step - 1];
+  if (next) {
+    next.setAttribute('aria-selected', true);
+    next.parentNode.setAttribute('active', true);
+    var found = false;
+    $$.forEach(incrementals, function(aNode) {
+      if (aNode != next.parentNode)
+        if (found)
+          aNode.removeAttribute('active');
+        else
+          aNode.setAttribute('active', true);
+      else
+        found = true;
+    });
+  } else {
+    setCursor(this.idx, 0);
+  }
+  return next;
+}
+
+Dz.goFullscreen = function() {
+  var html = $('html'),
+      requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
+  if (requestFullscreen) {
+    requestFullscreen.apply(html);
+  }
+}
+
+Dz.setProgress = function(aIdx, aStep) {
+  var slide = $("section:nth-of-type("+ aIdx +")");
+  if (!slide)
+    return;
+  var steps = slide.$$('.incremental > *').length + 1,
+      slideSize = 100 / (this.slides.length - 1),
+      stepSize = slideSize / steps;
+  this.progressBar.style.width = ((aIdx - 1) * slideSize + aStep * stepSize) + '%';
+}
+
+Dz.postMsg = function(aWin, aMsg) { // [arg0, [arg1...]]
+  aMsg = [aMsg];
+  for (var i = 2; i < arguments.length; i++)
+    aMsg.push(encodeURIComponent(arguments[i]));
+  aWin.postMessage(aMsg.join(" "), "*");
+}
+
+function init() {
+  Dz.init();
+  window.onkeydown = Dz.onkeydown.bind(Dz);
+  window.onresize = Dz.onresize.bind(Dz);
+  window.onhashchange = Dz.onhashchange.bind(Dz);
+  window.onmessage = Dz.onmessage.bind(Dz);
+}
+
+window.onload = init;
+
+// Helpers
+if (!Function.prototype.bind) {
+  Function.prototype.bind = function (oThis) {
+
+    // closest thing possible to the ECMAScript 5 internal IsCallable
+    // function
+    if (typeof this !== "function")
+    throw new TypeError(
+      "Function.prototype.bind - what is trying to be fBound is not callable"
+    );
+
+    var aArgs = Array.prototype.slice.call(arguments, 1),
+        fToBind = this,
+        fNOP = function () {},
+        fBound = function () {
+          return fToBind.apply( this instanceof fNOP ? this : oThis || window,
+                 aArgs.concat(Array.prototype.slice.call(arguments)));
+        };
+
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
+
+    return fBound;
+  };
+}
+
+var $ = (HTMLElement.prototype.$ = function(aQuery) {
+  return this.querySelector(aQuery);
+}).bind(document);
+
+var $$ = (HTMLElement.prototype.$$ = function(aQuery) {
+  return this.querySelectorAll(aQuery);
+}).bind(document);
+
+$$.forEach = function(nodeList, fun) {
+  Array.prototype.forEach.call(nodeList, fun);
+}
+//]]>
+    </script>
+    <script>
+//<![CDATA[
+var hljs=new function(){function l(o){return o.replace(/&/gm,"&amp;").replace(/</gm,"&lt;").replace(/>/gm,"&gt;")}function b(p){for(var o=p.firstChild;o;o=o.nextSibling){if(o.nodeName=="CODE"){return o}if(!(o.nodeType==3&&o.nodeValue.match(/\s+/))){break}}}function h(p,o){return Array.prototype.map.call(p.childNodes,function(q){if(q.nodeType==3){return o?q.nodeValue.replace(/\n/g,""):q.nodeValue}if(q.nodeName=="BR"){return"\n"}return h(q,o)}).join("")}function a(q){var p=(q.className+" "+q.parentNode.className).split(/\s+/);p=p.map(function(r){return r.replace(/^language-/,"")});for(var o=0;o<p.length;o++){if(e[p[o]]||p[o]=="no-highlight"){return p[o]}}}function c(q){var o=[];(function p(r,s){for(var t=r.firstChild;t;t=t.nextSibling){if(t.nodeType==3){s+=t.nodeValue.length}else{if(t.nodeName=="BR"){s+=1}else{if(t.nodeType==1){o.push({event:"start",offset:s,node:t});s=p(t,s);o.push({event:"stop",offset:s,node:t})}}}}return s})(q,0);return o}function j(x,v,w){var p=0;var y="";var r=[];function t(){if(x.length&&v.length){if(x[0].offset!=v[0].offset){return(x[0].offset<v[0].offset)?x:v}else{return v[0].event=="start"?x:v}}else{return x.length?x:v}}function s(A){function z(B){return" "+B.nodeName+'="'+l(B.value)+'"'}return"<"+A.nodeName+Array.prototype.map.call(A.attributes,z).join("")+">"}while(x.length||v.length){var u=t().splice(0,1)[0];y+=l(w.substr(p,u.offset-p));p=u.offset;if(u.event=="start"){y+=s(u.node);r.push(u.node)}else{if(u.event=="stop"){var o,q=r.length;do{q--;o=r[q];y+=("</"+o.nodeName.toLowerCase()+">")}while(o!=u.node);r.splice(q,1);while(q<r.length){y+=s(r[q]);q++}}}}return y+l(w.substr(p))}function f(q){function o(s,r){return RegExp(s,"m"+(q.cI?"i":"")+(r?"g":""))}function p(y,w){if(y.compiled){return}y.compiled=true;var s=[];if(y.k){var r={};function z(A,t){t.split(" ").forEach(function(B){var C=B.split("|");r[C[0]]=[A,C[1]?Number(C[1]):1];s.push(C[0])})}y.lR=o(y.l||hljs.IR,true);if(typeof y.k=="string"){z("keyword",y.k)}else{for(var x in y.k){if(!y.k.hasOwnProperty(x)){continue}z(x,y.k[x])}}y.k=r}if(w){if(y.bWK){y.b="\\b("+s.join("|")+")\\s"}y.bR=o(y.b?y.b:"\\B|\\b");if(!y.e&&!y.eW){y.e="\\B|\\b"}if(y.e){y.eR=o(y.e)}y.tE=y.e||"";if(y.eW&&w.tE){y.tE+=(y.e?"|":"")+w.tE}}if(y.i){y.iR=o(y.i)}if(y.r===undefined){y.r=1}if(!y.c){y.c=[]}for(var v=0;v<y.c.length;v++){if(y.c[v]=="self"){y.c[v]=y}p(y.c[v],y)}if(y.starts){p(y.starts,w)}var u=[];for(var v=0;v<y.c.length;v++){u.push(y.c[v].b)}if(y.tE){u.push(y.tE)}if(y.i){u.push(y.i)}y.t=u.length?o(u.join("|"),true):{exec:function(t){return null}}}p(q)}function d(D,E){function o(r,M){for(var L=0;L<M.c.length;L++){var K=M.c[L].bR.exec(r);if(K&&K.index==0){return M.c[L]}}}function s(K,r){if(K.e&&K.eR.test(r)){return K}if(K.eW){return s(K.parent,r)}}function t(r,K){return K.i&&K.iR.test(r)}function y(L,r){var K=F.cI?r[0].toLowerCase():r[0];return L.k.hasOwnProperty(K)&&L.k[K]}function G(){var K=l(w);if(!A.k){return K}var r="";var N=0;A.lR.lastIndex=0;var L=A.lR.exec(K);while(L){r+=K.substr(N,L.index-N);var M=y(A,L);if(M){v+=M[1];r+='<span class="'+M[0]+'">'+L[0]+"</span>"}else{r+=L[0]}N=A.lR.lastIndex;L=A.lR.exec(K)}return r+K.substr(N)}function z(){if(A.sL&&!e[A.sL]){return l(w)}var r=A.sL?d(A.sL,w):g(w);if(A.r>0){v+=r.keyword_count;B+=r.r}return'<span class="'+r.language+'">'+r.value+"</span>"}function J(){return A.sL!==undefined?z():G()}function I(L,r){var K=L.cN?'<span class="'+L.cN+'">':"";if(L.rB){x+=K;w=""}else{if(L.eB){x+=l(r)+K;w=""}else{x+=K;w=r}}A=Object.create(L,{parent:{value:A}});B+=L.r}function C(K,r){w+=K;if(r===undefined){x+=J();return 0}var L=o(r,A);if(L){x+=J();I(L,r);return L.rB?0:r.length}var M=s(A,r);if(M){if(!(M.rE||M.eE)){w+=r}x+=J();do{if(A.cN){x+="</span>"}A=A.parent}while(A!=M.parent);if(M.eE){x+=l(r)}w="";if(M.starts){I(M.starts,"")}return M.rE?0:r.length}if(t(r,A)){throw"Illegal"}w+=r;return r.length||1}var F=e[D];f(F);var A=F;var w="";var B=0;var v=0;var x="";try{var u,q,p=0;while(true){A.t.lastIndex=p;u=A.t.exec(E);if(!u){break}q=C(E.substr(p,u.index-p),u[0]);p=u.index+q}C(E.substr(p));return{r:B,keyword_count:v,value:x,language:D}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:l(E)}}else{throw H}}}function g(s){var o={keyword_count:0,r:0,value:l(s)};var q=o;for(var p in e){if(!e.hasOwnProperty(p)){continue}var r=d(p,s);r.language=p;if(r.keyword_count+r.r>q.keyword_count+q.r){q=r}if(r.keyword_count+r.r>o.keyword_count+o.r){q=o;o=r}}if(q.language){o.second_best=q}return o}function i(q,p,o){if(p){q=q.replace(/^((<[^>]+>|\t)+)/gm,function(r,v,u,t){return v.replace(/\t/g,p)})}if(o){q=q.replace(/\n/g,"<br>")}return q}function m(r,u,p){var v=h(r,p);var t=a(r);if(t=="no-highlight"){return}var w=t?d(t,v):g(v);t=w.language;var o=c(r);if(o.length){var q=document.createElement("pre");q.innerHTML=w.value;w.value=j(o,c(q),v)}w.value=i(w.value,u,p);var s=r.className;if(!s.match("(\\s|^)(language-)?"+t+"(\\s|$)")){s=s?(s+" "+t):t}r.innerHTML=w.value;r.className=s;r.result={language:t,kw:w.keyword_count,re:w.r};if(w.second_best){r.second_best={language:w.second_best.language,kw:w.second_best.keyword_count,re:w.second_best.r}}}function n(){if(n.called){return}n.called=true;Array.prototype.map.call(document.getElementsByTagName("pre"),b).filter(Boolean).forEach(function(o){m(o,hljs.tabReplace)})}function k(){window.addEventListener("DOMContentLoaded",n,false);window.addEventListener("load",n,false)}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=m;this.initHighlighting=n;this.initHighlightingOnLoad=k;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.BE={b:"\\\\[\\s\\S]",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(q,r){var o={};for(var p in q){o[p]=q[p]}if(r){for(var p in r){o[p]=r[p]}}return o}}();hljs.LANGUAGES.bash=function(a){var g="true false";var e="if then else elif fi for break continue while in do done echo exit return set declare";var c={cN:"variable",b:"\\$[a-zA-Z0-9_#]+"};var b={cN:"variable",b:"\\${([^}]|\\\\})+}"};var h={cN:"string",b:'"',e:'"',i:"\\n",c:[a.BE,c,b],r:0};var d={cN:"string",b:"'",e:"'",c:[{b:"''"}],r:0};var f={cN:"test_condition",b:"",e:"",c:[h,d,c,b],k:{literal:g},r:0};return{k:{keyword:e,literal:g},c:[{cN:"shebang",b:"(#!\\/bin\\/bash)|(#!\\/bin\\/sh)",r:10},c,b,a.HCM,h,d,a.inherit(f,{b:"\\[ ",e:" \\]",r:0}),a.inherit(f,{b:"\\[\\[ ",e:" \\]\\]"})]}}(hljs);hljs.LANGUAGES.cs=function(a){return{k:"abstract as base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sbyte sealed short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using virtual volatile void while ascending descending from get group into join let orderby partial select set value var where yield",c:[{cN:"comment",b:"///",e:"$",rB:true,c:[{cN:"xmlDocTag",b:"///|<!--|-->"},{cN:"xmlDocTag",b:"</?",e:">"}]},a.CLCM,a.CBLCLM,{cN:"preprocessor",b:"#",e:"$",k:"if else elif endif define undef warning error line region endregion pragma checksum"},{cN:"string",b:'@"',e:'"',c:[{b:'""'}]},a.ASM,a.QSM,a.CNM]}}(hljs);hljs.LANGUAGES.ruby=function(e){var a="[a-zA-Z_][a-zA-Z0-9_]*(\\!|\\?)?";var j="[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?";var g={keyword:"and false then defined module in return redo if BEGIN retry end for true self when next until do begin unless END rescue nil else break undef not super class case require yield alias while ensure elsif or include"};var c={cN:"yardoctag",b:"@[A-Za-z]+"};var k=[{cN:"comment",b:"#",e:"$",c:[c]},{cN:"comment",b:"^\\=begin",e:"^\\=end",c:[c],r:10},{cN:"comment",b:"^__END__",e:"\\n$"}];var d={cN:"subst",b:"#\\{",e:"}",l:a,k:g};var i=[e.BE,d];var b=[{cN:"string",b:"'",e:"'",c:i,r:0},{cN:"string",b:'"',e:'"',c:i,r:0},{cN:"string",b:"%[qw]?\\(",e:"\\)",c:i},{cN:"string",b:"%[qw]?\\[",e:"\\]",c:i},{cN:"string",b:"%[qw]?{",e:"}",c:i},{cN:"string",b:"%[qw]?<",e:">",c:i,r:10},{cN:"string",b:"%[qw]?/",e:"/",c:i,r:10},{cN:"string",b:"%[qw]?%",e:"%",c:i,r:10},{cN:"string",b:"%[qw]?-",e:"-",c:i,r:10},{cN:"string",b:"%[qw]?\\|",e:"\\|",c:i,r:10}];var h={cN:"function",bWK:true,e:" |$|;",k:"def",c:[{cN:"title",b:j,l:a,k:g},{cN:"params",b:"\\(",e:"\\)",l:a,k:g}].concat(k)};var f=k.concat(b.concat([{cN:"class",bWK:true,e:"$|;",k:"class module",c:[{cN:"title",b:"[A-Za-z_]\\w*(::\\w+)*(\\?|\\!)?",r:0},{cN:"inheritance",b:"<\\s*",c:[{cN:"parent",b:"("+e.IR+"::)?"+e.IR}]}].concat(k)},h,{cN:"constant",b:"(::)?(\\b[A-Z]\\w*(::)?)+",r:0},{cN:"symbol",b:":",c:b.concat([{b:j}]),r:0},{cN:"symbol",b:a+":",r:0},{cN:"number",b:"(\\b0[0-7_]+)|(\\b0x[0-9a-fA-F_]+)|(\\b[1-9][0-9_]*(\\.[0-9_]+)?)|[0_]\\b",r:0},{cN:"number",b:"\\?\\w"},{cN:"variable",b:"(\\$\\W)|((\\$|\\@\\@?)(\\w+))"},{b:"("+e.RSR+")\\s*",c:k.concat([{cN:"regexp",b:"/",e:"/[a-z]*",i:"\\n",c:[e.BE,d]}]),r:0}]));d.c=f;h.c[1].c=f;return{l:a,k:g,c:f}}(hljs);hljs.LANGUAGES.diff=function(a){return{c:[{cN:"chunk",b:"^\\@\\@ +\\-\\d+,\\d+ +\\+\\d+,\\d+ +\\@\\@$",r:10},{cN:"chunk",b:"^\\*\\*\\* +\\d+,\\d+ +\\*\\*\\*\\*$",r:10},{cN:"chunk",b:"^\\-\\-\\- +\\d+,\\d+ +\\-\\-\\-\\-$",r:10},{cN:"header",b:"Index: ",e:"$"},{cN:"header",b:"=====",e:"=====$"},{cN:"header",b:"^\\-\\-\\-",e:"$"},{cN:"header",b:"^\\*{3} ",e:"$"},{cN:"header",b:"^\\+\\+\\+",e:"$"},{cN:"header",b:"\\*{5}",e:"\\*{5}$"},{cN:"addition",b:"^\\+",e:"$"},{cN:"deletion",b:"^\\-",e:"$"},{cN:"change",b:"^\\!",e:"$"}]}}(hljs);hljs.LANGUAGES.javascript=function(a){return{k:{keyword:"in if for while finally var new function do return void else break catch instanceof with throw case default try this switch continue typeof delete let yield const",literal:"true false null undefined NaN Infinity"},c:[a.ASM,a.QSM,a.CLCM,a.CBLCLM,a.CNM,{b:"("+a.RSR+"|\\b(case|return|throw)\\b)\\s*",k:"return throw case",c:[a.CLCM,a.CBLCLM,{cN:"regexp",b:"/",e:"/[gim]*",i:"\\n",c:[{b:"\\\\/"}]},{b:"<",e:">;",sL:"xml"}],r:0},{cN:"function",bWK:true,e:"{",k:"function",c:[{cN:"title",b:"[A-Za-z$_][0-9A-Za-z$_]*"},{cN:"params",b:"\\(",e:"\\)",c:[a.CLCM,a.CBLCLM],i:"[\"'\\(]"}],i:"\\[|%"}]}}(hljs);hljs.LANGUAGES.xml=function(a){var c="[A-Za-z0-9\\._:-]+";var b={eW:true,c:[{cN:"attribute",b:c,r:0},{b:'="',rB:true,e:'"',c:[{cN:"value",b:'"',eW:true}]},{b:"='",rB:true,e:"'",c:[{cN:"value",b:"'",eW:true}]},{b:"=",c:[{cN:"value",b:"[^\\s/>]+"}]}]};return{cI:true,c:[{cN:"pi",b:"<\\?",e:"\\?>",r:10},{cN:"doctype",b:"<!DOCTYPE",e:">",r:10,c:[{b:"\\[",e:"\\]"}]},{cN:"comment",b:"<!--",e:"-->",r:10},{cN:"cdata",b:"<\\!\\[CDATA\\[",e:"\\]\\]>",r:10},{cN:"tag",b:"<style(?=\\s|>|$)",e:">",k:{title:"style"},c:[b],starts:{e:"</style>",rE:true,sL:"css"}},{cN:"tag",b:"<script(?=\\s|>|$)",e:">",k:{title:"script"},c:[b],starts:{e:"<\/script>",rE:true,sL:"javascript"}},{b:"<%",e:"%>",sL:"vbscript"},{cN:"tag",b:"</?",e:"/?>",c:[{cN:"title",b:"[^ />]+"},b]}]}}(hljs);hljs.LANGUAGES.markdown=function(a){return{c:[{cN:"header",b:"^#{1,3}",e:"$"},{cN:"header",b:"^.+?\\n[=-]{2,}$"},{b:"<",e:">",sL:"xml",r:0},{cN:"bullet",b:"^([*+-]|(\\d+\\.))\\s+"},{cN:"strong",b:"[*_]{2}.+?[*_]{2}"},{cN:"emphasis",b:"\\*.+?\\*"},{cN:"emphasis",b:"_.+?_",r:0},{cN:"blockquote",b:"^>\\s+",e:"$"},{cN:"code",b:"`.+?`"},{cN:"code",b:"^    ",e:"$",r:0},{cN:"horizontal_rule",b:"^-{3,}",e:"$"},{b:"\\[.+?\\]\\(.+?\\)",rB:true,c:[{cN:"link_label",b:"\\[.+\\]"},{cN:"link_url",b:"\\(",e:"\\)",eB:true,eE:true}]}]}}(hljs);hljs.LANGUAGES.css=function(a){var b={cN:"function",b:a.IR+"\\(",e:"\\)",c:[a.NM,a.ASM,a.QSM]};return{cI:true,i:"[=/|']",c:[a.CBLCLM,{cN:"id",b:"\\#[A-Za-z0-9_-]+"},{cN:"class",b:"\\.[A-Za-z0-9_-]+",r:0},{cN:"attr_selector",b:"\\[",e:"\\]",i:"$"},{cN:"pseudo",b:":(:)?[a-zA-Z0-9\\_\\-\\+\\(\\)\\\"\\']+"},{cN:"at_rule",b:"@(font-face|page)",l:"[a-z-]+",k:"font-face page"},{cN:"at_rule",b:"@",e:"[{;]",eE:true,k:"import page media charset",c:[b,a.ASM,a.QSM,a.NM]},{cN:"tag",b:a.IR,r:0},{cN:"rules",b:"{",e:"}",i:"[^\\s]",r:0,c:[a.CBLCLM,{cN:"rule",b:"[^\\s]",rB:true,e:";",eW:true,c:[{cN:"attribute",b:"[A-Z\\_\\.\\-]+",e:":",eE:true,i:"[^\\s]",starts:{cN:"value",eW:true,eE:true,c:[b,a.NM,a.QSM,a.ASM,a.CBLCLM,{cN:"hexcolor",b:"\\#[0-9A-F]+"},{cN:"important",b:"!important"}]}}]}]}]}}(hljs);hljs.LANGUAGES.http=function(a){return{i:"\\S",c:[{cN:"status",b:"^HTTP/[0-9\\.]+",e:"$",c:[{cN:"number",b:"\\b\\d{3}\b"}]},{cN:"request",b:"^[A-Z]+ (.*?) HTTP/[0-9\\.]+$",rB:true,e:"$",c:[{cN:"string",b:" ",e:" ",eB:true,eE:true}]},{cN:"attribute",b:"^\\w",e:": ",eE:true,i:"\\n|\\s|=",starts:{cN:"string",e:"$"}},{b:"\\n\\n",starts:{sL:"",eW:true}}]}}(hljs);hljs.LANGUAGES.java=function(a){return{k:"false synchronized int abstract float private char boolean static null if const for true while long throw strictfp finally protected import native final return void enum else break transient new catch instanceof byte super volatile case assert short package default double public try this switch continue throws",c:[{cN:"javadoc",b:"/\\*\\*",e:"\\*/",c:[{cN:"javadoctag",b:"@[A-Za-z]+"}],r:10},a.CLCM,a.CBLCLM,a.ASM,a.QSM,{cN:"class",bWK:true,e:"{",k:"class interface",i:":",c:[{bWK:true,k:"extends implements",r:10},{cN:"title",b:a.UIR}]},a.CNM,{cN:"annotation",b:"@[A-Za-z]+"}]}}(hljs);hljs.LANGUAGES.php=function(a){var e={cN:"variable",b:"\\$+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*"};var b=[a.inherit(a.ASM,{i:null}),a.inherit(a.QSM,{i:null}),{cN:"string",b:'b"',e:'"',c:[a.BE]},{cN:"string",b:"b'",e:"'",c:[a.BE]}];var c=[a.BNM,a.CNM];var d={cN:"title",b:a.UIR};return{cI:true,k:"and include_once list abstract global private echo interface as static endswitch array null if endwhile or const for endforeach self var while isset public protected exit foreach throw elseif include __FILE__ empty require_once do xor return implements parent clone use __CLASS__ __LINE__ else break print eval new catch __METHOD__ case exception php_user_filter default die require __FUNCTION__ enddeclare final try this switch continue endfor endif declare unset true false namespace trait goto instanceof insteadof __DIR__ __NAMESPACE__ __halt_compiler",c:[a.CLCM,a.HCM,{cN:"comment",b:"/\\*",e:"\\*/",c:[{cN:"phpdoc",b:"\\s@[A-Za-z]+"}]},{cN:"comment",eB:true,b:"__halt_compiler.+?;",eW:true},{cN:"string",b:"<<<['\"]?\\w+['\"]?$",e:"^\\w+;",c:[a.BE]},{cN:"preprocessor",b:"<\\?php",r:10},{cN:"preprocessor",b:"\\?>"},e,{cN:"function",bWK:true,e:"{",k:"function",i:"\\$|\\[|%",c:[d,{cN:"params",b:"\\(",e:"\\)",c:["self",e,a.CBLCLM].concat(b).concat(c)}]},{cN:"class",bWK:true,e:"{",k:"class",i:"[:\\(\\$]",c:[{bWK:true,eW:true,k:"extends",c:[d]},d]},{b:"=>"}].concat(b).concat(c)}}(hljs);hljs.LANGUAGES.python=function(a){var f={cN:"prompt",b:"^(>>>|\\.\\.\\.) "};var c=[{cN:"string",b:"(u|b)?r?'''",e:"'''",c:[f],r:10},{cN:"string",b:'(u|b)?r?"""',e:'"""',c:[f],r:10},{cN:"string",b:"(u|r|ur)'",e:"'",c:[a.BE],r:10},{cN:"string",b:'(u|r|ur)"',e:'"',c:[a.BE],r:10},{cN:"string",b:"(b|br)'",e:"'",c:[a.BE]},{cN:"string",b:'(b|br)"',e:'"',c:[a.BE]}].concat([a.ASM,a.QSM]);var e={cN:"title",b:a.UIR};var d={cN:"params",b:"\\(",e:"\\)",c:["self",a.CNM,f].concat(c)};var b={bWK:true,e:":",i:"[${=;\\n]",c:[e,d],r:10};return{k:{keyword:"and elif is global as in if from raise for except finally print import pass return exec else break not with class assert yield try while continue del or def lambda nonlocal|10",built_in:"None True False Ellipsis NotImplemented"},i:"(</|->|\\?)",c:c.concat([f,a.HCM,a.inherit(b,{cN:"function",k:"def"}),a.inherit(b,{cN:"class",k:"class"}),a.CNM,{cN:"decorator",b:"@",e:"$"},{b:"\\b(print|exec)\\("}])}}(hljs);hljs.LANGUAGES.sql=function(a){return{cI:true,c:[{cN:"operator",b:"(begin|start|commit|rollback|savepoint|lock|alter|create|drop|rename|call|delete|do|handler|insert|load|replace|select|truncate|update|set|show|pragma|grant)\\b(?!:)",e:";",eW:true,k:{keyword:"all partial global month current_timestamp using go revoke smallint indicator end-exec disconnect zone with character assertion to add current_user usage input local alter match collate real then rollback get read timestamp session_user not integer bit unique day minute desc insert execute like ilike|2 level decimal drop continue isolation found where constraints domain right national some module transaction relative second connect escape close system_user for deferred section cast current sqlstate allocate intersect deallocate numeric public preserve full goto initially asc no key output collation group by union session both last language constraint column of space foreign deferrable prior connection unknown action commit view or first into float year primary cascaded except restrict set references names table outer open select size are rows from prepare distinct leading create only next inner authorization schema corresponding option declare precision immediate else timezone_minute external varying translation true case exception join hour default double scroll value cursor descriptor values dec fetch procedure delete and false int is describe char as at in varchar null trailing any absolute current_time end grant privileges when cross check write current_date pad begin temporary exec time update catalog user sql date on identity timezone_hour natural whenever interval work order cascade diagnostics nchar having left call do handler load replace truncate start lock show pragma exists number",aggregate:"count sum min max avg"},c:[{cN:"string",b:"'",e:"'",c:[a.BE,{b:"''"}],r:0},{cN:"string",b:'"',e:'"',c:[a.BE,{b:'""'}],r:0},{cN:"string",b:"`",e:"`",c:[a.BE]},a.CNM]},a.CBLCLM,{cN:"comment",b:"--",e:"$"}]}}(hljs);hljs.LANGUAGES.ini=function(a){return{cI:true,i:"[^\\s]",c:[{cN:"comment",b:";",e:"$"},{cN:"title",b:"^\\[",e:"\\]"},{cN:"setting",b:"^[a-z0-9\\[\\]_-]+[ \\t]*=[ \\t]*",e:"$",c:[{cN:"value",eW:true,k:"on off true false yes no",c:[a.QSM,a.NM]}]}]}}(hljs);hljs.LANGUAGES.perl=function(e){var a="getpwent getservent quotemeta msgrcv scalar kill dbmclose undef lc ma syswrite tr send umask sysopen shmwrite vec qx utime local oct semctl localtime readpipe do return format read sprintf dbmopen pop getpgrp not getpwnam rewinddir qqfileno qw endprotoent wait sethostent bless s|0 opendir continue each sleep endgrent shutdown dump chomp connect getsockname die socketpair close flock exists index shmgetsub for endpwent redo lstat msgctl setpgrp abs exit select print ref gethostbyaddr unshift fcntl syscall goto getnetbyaddr join gmtime symlink semget splice x|0 getpeername recv log setsockopt cos last reverse gethostbyname getgrnam study formline endhostent times chop length gethostent getnetent pack getprotoent getservbyname rand mkdir pos chmod y|0 substr endnetent printf next open msgsnd readdir use unlink getsockopt getpriority rindex wantarray hex system getservbyport endservent int chr untie rmdir prototype tell listen fork shmread ucfirst setprotoent else sysseek link getgrgid shmctl waitpid unpack getnetbyname reset chdir grep split require caller lcfirst until warn while values shift telldir getpwuid my getprotobynumber delete and sort uc defined srand accept package seekdir getprotobyname semop our rename seek if q|0 chroot sysread setpwent no crypt getc chown sqrt write setnetent setpriority foreach tie sin msgget map stat getlogin unless elsif truncate exec keys glob tied closedirioctl socket readlink eval xor readline binmode setservent eof ord bind alarm pipe atan2 getgrent exp time push setgrent gt lt or ne m|0 break given say state when";var d={cN:"subst",b:"[$@]\\{",e:"\\}",k:a,r:10};var b={cN:"variable",b:"\\$\\d"};var i={cN:"variable",b:"[\\$\\%\\@\\*](\\^\\w\\b|#\\w+(\\:\\:\\w+)*|[^\\s\\w{]|{\w+}|\\w+(\\:\\:\\w*)*)"};var f=[e.BE,d,b,i];var h={b:"->",c:[{b:e.IR},{b:"{",e:"}"}]};var g={cN:"comment",b:"^(__END__|__DATA__)",e:"\\n$",r:5};var c=[b,i,e.HCM,g,{cN:"comment",b:"^\\=\\w",e:"\\=cut",eW:true},h,{cN:"string",b:"q[qwxr]?\\s*\\(",e:"\\)",c:f,r:5},{cN:"string",b:"q[qwxr]?\\s*\\[",e:"\\]",c:f,r:5},{cN:"string",b:"q[qwxr]?\\s*\\{",e:"\\}",c:f,r:5},{cN:"string",b:"q[qwxr]?\\s*\\|",e:"\\|",c:f,r:5},{cN:"string",b:"q[qwxr]?\\s*\\<",e:"\\>",c:f,r:5},{cN:"string",b:"qw\\s+q",e:"q",c:f,r:5},{cN:"string",b:"'",e:"'",c:[e.BE],r:0},{cN:"string",b:'"',e:'"',c:f,r:0},{cN:"string",b:"`",e:"`",c:[e.BE]},{cN:"string",b:"{\w+}",r:0},{cN:"string",b:"-?\\w+\\s*\\=\\>",r:0},{cN:"number",b:"(\\b0[0-7_]+)|(\\b0x[0-9a-fA-F_]+)|(\\b[1-9][0-9_]*(\\.[0-9_]+)?)|[0_]\\b",r:0},{b:"("+e.RSR+"|\\b(split|return|print|reverse|grep)\\b)\\s*",k:"split return print reverse grep",r:0,c:[e.HCM,g,{cN:"regexp",b:"(s|tr|y)/(\\\\.|[^/])*/(\\\\.|[^/])*/[a-z]*",r:10},{cN:"regexp",b:"(m|qr)?/",e:"/[a-z]*",c:[e.BE],r:0}]},{cN:"sub",bWK:true,e:"(\\s*\\(.*?\\))?[;{]",k:"sub",r:5},{cN:"operator",b:"-\\w\\b",r:0}];d.c=c;h.c[1].c=c;return{k:a,c:c}}(hljs);hljs.LANGUAGES.coffeescript=function(c){var b={keyword:"in if for while finally new do return else break catch instanceof throw try this switch continue typeof delete debugger super then unless until loop of by when and or is isnt not",literal:"true false null undefined yes no on off ",reserved:"case default function var void with const let enum export import native __hasProp __extends __slice __bind __indexOf"};var a="[A-Za-z$_][0-9A-Za-z$_]*";var e={cN:"title",b:a};var d={cN:"subst",b:"#\\{",e:"}",k:b,c:[c.BNM,c.CNM]};return{k:b,c:[c.BNM,c.CNM,c.ASM,{cN:"string",b:'"""',e:'"""',c:[c.BE,d]},{cN:"string",b:'"',e:'"',c:[c.BE,d],r:0},{cN:"comment",b:"###",e:"###"},c.HCM,{cN:"regexp",b:"///",e:"///",c:[c.HCM]},{cN:"regexp",b:"//[gim]*"},{cN:"regexp",b:"/\\S(\\\\.|[^\\n])*/[gim]*"},{b:"`",e:"`",eB:true,eE:true,sL:"javascript"},{cN:"function",b:a+"\\s*=\\s*(\\(.+\\))?\\s*[-=]>",rB:true,c:[e,{cN:"params",b:"\\(",e:"\\)"}]},{cN:"class",bWK:true,k:"class",e:"$",i:":",c:[{bWK:true,k:"extends",eW:true,i:":",c:[e]},e]},{cN:"property",b:"@"+a}]}}(hljs);hljs.LANGUAGES.json=function(a){var e={literal:"true false null"};var d=[a.QSM,a.CNM];var c={cN:"value",e:",",eW:true,eE:true,c:d,k:e};var b={b:"{",e:"}",c:[{cN:"attribute",b:'\\s*"',e:'"\\s*:\\s*',eB:true,eE:true,c:[a.BE],i:"\\n",starts:c}],i:"\\S"};var f={b:"\\[",e:"\\]",c:[a.inherit(c,{cN:null})],i:"\\S"};d.splice(d.length,0,b,f);return{c:d,k:e,i:"\\S"}}(hljs);hljs.LANGUAGES.cpp=function(a){var b={keyword:"false int float while private char catch export virtual operator sizeof dynamic_cast|10 typedef const_cast|10 const struct for static_cast|10 union namespace unsigned long throw volatile static protected bool template mutable if public friend do return goto auto void enum else break new extern using true class asm case typeid short reinterpret_cast|10 default double register explicit signed typename try this switch continue wchar_t inline delete alignof char16_t char32_t constexpr decltype noexcept nullptr static_assert thread_local restrict _Bool complex",built_in:"std string cin cout cerr clog stringstream istringstream ostringstream auto_ptr deque list queue stack vector map set bitset multiset multimap unordered_set unordered_map unordered_multiset unordered_multimap array shared_ptr"};return{k:b,i:"</",c:[a.CLCM,a.CBLCLM,a.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},a.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:b,r:10,c:["self"]}]}}(hljs);hljs.LANGUAGES.clojure=function(l){var e={built_in:"def cond apply if-not if-let if not not= = &lt; < > &lt;= <= >= == + / * - rem quot neg? pos? delay? symbol? keyword? true? false? integer? empty? coll? list? set? ifn? fn? associative? sequential? sorted? counted? reversible? number? decimal? class? distinct? isa? float? rational? reduced? ratio? odd? even? char? seq? vector? string? map? nil? contains? zero? instance? not-every? not-any? libspec? -> ->> .. . inc compare do dotimes mapcat take remove take-while drop letfn drop-last take-last drop-while while intern condp case reduced cycle split-at split-with repeat replicate iterate range merge zipmap declare line-seq sort comparator sort-by dorun doall nthnext nthrest partition eval doseq await await-for let agent atom send send-off release-pending-sends add-watch mapv filterv remove-watch agent-error restart-agent set-error-handler error-handler set-error-mode! error-mode shutdown-agents quote var fn loop recur throw try monitor-enter monitor-exit defmacro defn defn- macroexpand macroexpand-1 for doseq dosync dotimes and or when when-not when-let comp juxt partial sequence memoize constantly complement identity assert peek pop doto proxy defstruct first rest cons defprotocol cast coll deftype defrecord last butlast sigs reify second ffirst fnext nfirst nnext defmulti defmethod meta with-meta ns in-ns create-ns import intern refer keys select-keys vals key val rseq name namespace promise into transient persistent! conj! assoc! dissoc! pop! disj! import use class type num float double short byte boolean bigint biginteger bigdec print-method print-dup throw-if throw printf format load compile get-in update-in pr pr-on newline flush read slurp read-line subvec with-open memfn time ns assert re-find re-groups rand-int rand mod locking assert-valid-fdecl alias namespace resolve ref deref refset swap! reset! set-validator! compare-and-set! alter-meta! reset-meta! commute get-validator alter ref-set ref-history-count ref-min-history ref-max-history ensure sync io! new next conj set! memfn to-array future future-call into-array aset gen-class reduce merge map filter find empty hash-map hash-set sorted-map sorted-map-by sorted-set sorted-set-by vec vector seq flatten reverse assoc dissoc list disj get union difference intersection extend extend-type extend-protocol int nth delay count concat chunk chunk-buffer chunk-append chunk-first chunk-rest max min dec unchecked-inc-int unchecked-inc unchecked-dec-inc unchecked-dec unchecked-negate unchecked-add-int unchecked-add unchecked-subtract-int unchecked-subtract chunk-next chunk-cons chunked-seq? prn vary-meta lazy-seq spread list* str find-keyword keyword symbol gensym force rationalize"};var f="[a-zA-Z_0-9\\!\\.\\?\\-\\+\\*\\/\\<\\=\\>\\&\\#\\$';]+";var a="[\\s:\\(\\{]+\\d+(\\.\\d+)?";var d={cN:"number",b:a,r:0};var j={cN:"string",b:'"',e:'"',c:[l.BE],r:0};var o={cN:"comment",b:";",e:"$",r:0};var n={cN:"collection",b:"[\\[\\{]",e:"[\\]\\}]"};var c={cN:"comment",b:"\\^"+f};var b={cN:"comment",b:"\\^\\{",e:"\\}"};var h={cN:"attribute",b:"[:]"+f};var m={cN:"list",b:"\\(",e:"\\)",r:0};var g={eW:true,eE:true,k:{literal:"true false nil"},r:0};var i={k:e,l:f,cN:"title",b:f,starts:g};m.c=[{cN:"comment",b:"comment"},i];g.c=[m,j,c,b,o,h,n,d];n.c=[m,j,c,o,h,n,d];return{i:"\\S",c:[o,m]}}(hljs);
+//]]>
+    </script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </body>
+</html>
