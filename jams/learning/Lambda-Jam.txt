@@ -2,18 +2,23 @@ The dataset
 *************
 
 2 datasets can be downloaded here:
+
 1) a training set of 5,000 examples
 http://brandewinder.blob.core.windows.net/public/digitssample.csv
 
-2) a validation set of 500 examples; this dataset is supplied so that you can evaluate 
-the performance of your classification model on "fresh" data that hasn't been used to construct the classifier.
+2) a validation set of 500 examples; this dataset is supplied so that
+you can evaluate the performance of your classification model on
+"fresh" data that hasn't been used to construct the classifier.
 http://brandewinder.blob.core.windows.net/public/digitscheck.csv
 
-The files are CSV files; each row in the dataset represents a scanned hand-written digit:
-* the first element is the actual digit (0 to 9),
-* the next 784 elements are the 28 x 28 pixels of the image, flattened into a single vector. Each pixel is gray scale, from 0 (pure black) to 255 (pure white).
+The files are CSV files; the first line contains column labels and
+each subsequent row represents a scanned hand-written digit:
 
-The full 50,000 training examples dataset is available at http://www.kaggle.com/c/digit-recognizer.
+* the first element is the actual digit (0 to 9)
+* the next 784 elements are the 28 x 28 pixels of the image, flattened
+  into a single vector. Each pixel is gray scale, from 0 (pure black) to 255 (pure white).
+
+The full 50,000 training example dataset is available at http://www.kaggle.com/c/digit-recognizer.
 
 
 Naive KNN (K Nearest Neighbors) algorithm
@@ -31,8 +36,8 @@ Naive KNN in Pseudo Code:
 
 Simplest thing that could possibly work: 1-Nearest Neighbor ("Closest Neighbor")
 
-  From the training set, 
-  Find the closest example to the Target, 
+  From the training set,
+  Find the closest example to the Target,
   Return its Label
 
 
@@ -48,10 +53,10 @@ Suggested plan of attack
 - Check what proportion of the Validation Set gets properly classified using that model
 
 ... now find ways to improve the model :)
-  
+
 More information
 ******************
-  
+
 More on the KNN algorithm:
 http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
 Discussion on algorithm approaches and improvements
