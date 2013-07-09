@@ -59,5 +59,12 @@ More information
 
 More on the KNN algorithm:
 http://en.wikipedia.org/wiki/K-nearest_neighbor_algorithm
+
 Discussion on algorithm approaches and improvements
 http://www.kaggle.com/c/digit-recognizer
+
+Slides:
+https://docs.google.com/presentation/d/17amRTjLFi_2KhUn8qU9nWnwVScpoF2kgJBOEBHxSkl4/edit?usp=sharing
+
+On GitHub:
+https://github.com/strangeloop/lambdajam2013/tree/master/jams/learning
